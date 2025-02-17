@@ -3,6 +3,7 @@ package adminService
 import (
 	"github.com/gin-gonic/gin"
 	"strconv"
+	"time"
 	"walk-server/global"
 	"walk-server/model"
 	"walk-server/utility"
@@ -60,4 +61,20 @@ func GetAdminByJWT(context *gin.Context) (*model.Admin, error) {
 		return nil, err
 	}
 	return user, err
+}
+
+func GetTimeoutTeams(min int, route uint8) (map[int8][]model.Team, error) {
+	var teams []model.Team
+	duration := time.Duration(min) * time.Minute
+	result := global.DB.Where("time < ? And route = ?", time.Now().Add(-duration), route).Not("status = 4").Find(&teams)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	teamMap := make(map[int8][]model.Team)
+	for _, team := range teams {
+		teamMap[team.Point] = append(teamMap[team.Point], team)
+	}
+
+	return teamMap, nil
 }

@@ -20,7 +20,7 @@ type Team struct {
 	Status     uint8     // 1 未开始，2 进行中，3 未完成，4 完成 ,5 扫码成功
 	Submit     bool      // 是否提交（报名成功）
 	Code       string    `gorm:"index"` // 队伍绑定的签到二维码
-	Time       time.Time // 队伍签到时间
+	Time       time.Time // 队伍状态更新时间
 }
 
 func GetTeamInfo(teamID uint) (*Team, error) {

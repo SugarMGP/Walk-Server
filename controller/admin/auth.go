@@ -1,9 +1,11 @@
 package admin
 
 import (
+	"errors"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 	"strconv"
+	"walk-server/constant"
 	"walk-server/global"
 	"walk-server/service/adminService"
 	"walk-server/utility"
@@ -24,6 +26,16 @@ type LoginForm struct {
 	Password string `json:"password" binding:"required"`
 }
 
+type LoginResp struct {
+	ID           uint   `json:"admin_id"`
+	WechatOpenID string `json:"-"`
+	Name         string `json:"name"`
+	Account      string `json:"account"`
+	Password     string `json:"-"`
+	Point        string `json:"point"`
+	Route        uint8  `json:"route"`
+}
+
 func AuthByPassword(c *gin.Context) {
 	var postForm passwordLoginForm
 	err := c.ShouldBindJSON(&postForm)
@@ -33,7 +45,7 @@ func AuthByPassword(c *gin.Context) {
 		return
 	}
 	user, err := adminService.GetUserByAccount(postForm.Username)
-	if err == gorm.ErrRecordNotFound {
+	if errors.Is(err, gorm.ErrRecordNotFound) {
 		utility.ResponseError(c, "账号错误")
 		return
 	}
@@ -62,8 +74,15 @@ func AuthByPassword(c *gin.Context) {
 	jwtToken, err := utility.GenerateStandardJwt(&jwtData)
 
 	utility.ResponseSuccess(c, gin.H{
-		"admin": user,
-		"jwt":   jwtToken,
+		"admin": LoginResp{
+			ID:           user.ID,
+			WechatOpenID: user.WechatOpenID,
+			Name:         user.Name,
+			Account:      user.Account,
+			Point:        constant.GetPointName(user.Route, user.Point),
+			Route:        user.Route,
+		},
+		"jwt": jwtToken,
 	})
 }
 
@@ -93,8 +112,15 @@ func WeChatLogin(c *gin.Context) {
 	jwtToken, err := utility.GenerateStandardJwt(&jwtData)
 
 	utility.ResponseSuccess(c, gin.H{
-		"admin": user,
-		"jwt":   jwtToken,
+		"admin": LoginResp{
+			ID:           user.ID,
+			WechatOpenID: user.WechatOpenID,
+			Name:         user.Name,
+			Account:      user.Account,
+			Point:        constant.GetPointName(user.Route, user.Point),
+			Route:        user.Route,
+		},
+		"jwt": jwtToken,
 	})
 }
 
@@ -126,8 +152,15 @@ func AuthWithoutCode(c *gin.Context) {
 	// 生成 JWT
 	jwtToken, err := utility.GenerateStandardJwt(&jwtData)
 	utility.ResponseSuccess(c, gin.H{
-		"admin": user,
-		"jwt":   jwtToken,
+		"admin": LoginResp{
+			ID:           user.ID,
+			WechatOpenID: user.WechatOpenID,
+			Name:         user.Name,
+			Account:      user.Account,
+			Point:        constant.GetPointName(user.Route, user.Point),
+			Route:        user.Route,
+		},
+		"jwt": jwtToken,
 	})
 }
 

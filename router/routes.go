@@ -22,8 +22,9 @@ func MountRoutes(router *gin.Engine) {
 		}
 
 		// Basic
-		api.GET("/oauth", basic.Oauth) // 微信 Oauth 的起点接口
-		api.GET("/login", basic.Login) // 微信服务器的回调地址
+		api.GET("/oauth", basic.Oauth)                // 微信 Oauth 的起点接口
+		api.GET("/login", basic.Login)                // 微信服务器的回调地址
+		api.GET("/login/openid", basic.LoginByOpenID) // 通过 openID 登录
 
 		// Register
 		registerApi := api.Group("/register", middleware.RegisterJWTValidity, middleware.PerRateLimiter)
@@ -86,12 +87,13 @@ func MountRoutes(router *gin.Engine) {
 		adminApi.POST("/team/update", middleware.CheckAdmin, admin.UpdateTeamStatus)     // 更新队伍状态
 		adminApi.POST("/team/user_status", middleware.CheckAdmin, admin.UserStatus)      // 更新用户状态
 		adminApi.POST("/team/destination", middleware.CheckAdmin, admin.PostDestination) // 提交终点
-		adminApi.POST("/team/secret", middleware.CheckAdmin, admin.BlockWithSecret)      // 通过密钥封禁接口
+		adminApi.POST("/team/secret", admin.BlockWithSecret)                             // 通过密钥封禁接口
 		adminApi.POST("/team/regroup", middleware.CheckAdmin, admin.Regroup)             // 重新分组
 		adminApi.POST("/team/submit", middleware.CheckAdmin, admin.SubmitTeam)           // 提交团队
 		adminApi.GET("/detail", admin.GetDetail)                                         // 获取路线人员详情
 		adminApi.GET("/submit", admin.GetSubmitDetail)                                   // 获取报名人员列表
-
+		adminApi.GET("/timeout", admin.GetTimeoutUsers)                                  // 获取超时未提交的用户
+		adminApi.GET("/timeout/download", admin.DownloadTimeoutUsers)                    // 下载超时未提交的用户
+		adminApi.GET("/team/status/secret", admin.GetTeamBySecret)                       // 通过密钥获取队伍信息
 	}
-
 }

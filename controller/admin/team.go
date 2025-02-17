@@ -1,6 +1,7 @@
 package admin
 
 import (
+	"errors"
 	"strconv"
 	"time"
 	"walk-server/constant"
@@ -70,6 +71,7 @@ func GetTeam(c *gin.Context) {
 			"walk_status": member.WalkStatus,
 		})
 	}
+	point := constant.GetPointName(team.Route, team.Point)
 	utility.ResponseSuccess(c, gin.H{
 		"team": gin.H{
 			"id":          team.ID,
@@ -78,7 +80,7 @@ func GetTeam(c *gin.Context) {
 			"password":    team.Password,
 			"allow_match": team.AllowMatch,
 			"slogan":      team.Slogan,
-			"point":       team.Point,
+			"point":       point,
 			"status":      team.Status,
 			"start_num":   team.StartNum,
 			"code":        team.Code,
@@ -153,7 +155,7 @@ func BindTeam(c *gin.Context) {
 	team.Point = 0
 	team.Status = 5
 	team.StartNum = num
-	team.Time = time.Now()
+	team.Time = time.Now().Add(8 * time.Hour)
 	teamService.Update(*team)
 	utility.ResponseSuccess(c, nil)
 }
@@ -252,7 +254,7 @@ func UpdateTeamStatus(c *gin.Context) {
 			userService.Update(p)
 		}
 	}
-	team.Time = time.Now()
+	team.Time = time.Now().Add(8 * time.Hour)
 	team.Status = 2
 	teamService.Update(*team)
 	utility.ResponseSuccess(c, gin.H{
@@ -310,7 +312,7 @@ func PostDestination(c *gin.Context) {
 	}
 
 	team.Point = int8(constant.PointMap[team.Route])
-	team.Time = time.Now()
+	team.Time = time.Now().Add(8 * time.Hour)
 
 	if postForm.Status == 1 {
 		for _, p := range persons {
@@ -376,6 +378,19 @@ func Regroup(c *gin.Context) {
 
 		// 如果已有队伍则退出
 		if person.TeamId != -1 {
+			team, _ := teamService.GetTeamByID(uint(person.TeamId))
+			if team.Status != 1 {
+				utility.ResponseError(c, "队伍状态异常，请重新检查")
+				return
+			}
+		}
+
+		persons = append(persons, *person)
+	}
+
+	for _, person := range persons {
+		// 如果已有队伍则退出
+		if person.TeamId != -1 {
 			captain, persons := model.GetPersonsInTeam(person.TeamId)
 			for _, p := range persons {
 				p.TeamId = -1
@@ -387,15 +402,18 @@ func Regroup(c *gin.Context) {
 			captain.Status = 0
 			captain.WalkStatus = 1
 			userService.Update(captain)
-			team, _ := teamService.GetTeamByID(uint(person.TeamId))
-			err = teamService.Delete(*team)
-			if err != nil {
+			team, err := teamService.GetTeamByID(uint(person.TeamId))
+			if err == nil {
+				err = teamService.Delete(*team)
+				if err != nil {
+					utility.ResponseError(c, "服务错误")
+					return
+				}
+			} else if !errors.Is(err, gorm.ErrRecordNotFound) {
 				utility.ResponseError(c, "服务错误")
 				return
 			}
 		}
-
-		persons = append(persons, *person)
 	}
 
 	// 创建新队伍，第一个人作为队长
@@ -411,8 +429,13 @@ func Regroup(c *gin.Context) {
 		Num:        uint8(len(persons)),
 		Captain:    persons[0].OpenId,
 		Submit:     true,
+		Time:       time.Now().Add(8 * time.Hour),
 	}
-	teamService.Create(newTeam)
+	err = teamService.Create(newTeam)
+	if err != nil {
+		utility.ResponseError(c, "服务错误")
+		return
+	}
 
 	team, err := teamService.GetTeamByCaptain(persons[0].OpenId)
 	if err != nil {
@@ -709,4 +732,64 @@ func getTeamStats(route int, submit int, captainType int, hasStudent bool) (int6
 	totalQuery.Count(&totalCount)
 
 	return teamCount, totalCount
+}
+
+type allTeamForm struct {
+	Secret string `form:"secret" binding:"required"`
+	TeamID uint   `form:"team_id" binding:"required"` // 团队码为team_id
+}
+
+func GetTeamBySecret(c *gin.Context) {
+	var postForm allTeamForm
+	err := c.ShouldBindQuery(&postForm)
+	if err != nil {
+		utility.ResponseError(c, "参数错误")
+		return
+	}
+	if postForm.Secret != global.Config.GetString("server.secret") {
+		utility.ResponseError(c, "密码错误")
+		return
+	}
+	var team *model.Team
+	team, err = teamService.GetTeamByID(postForm.TeamID)
+	if team == nil || err != nil {
+		utility.ResponseError(c, "队伍编号输入错误，队伍查找失败")
+		return
+	}
+
+	var persons []model.Person
+	global.DB.Where("team_id = ?", team.ID).Find(&persons)
+
+	var memberData []gin.H
+	for _, member := range persons {
+		memberData = append(memberData, gin.H{
+			"name":    member.Name,
+			"gender":  member.Gender,
+			"open_id": member.OpenId,
+			"campus":  member.Campus,
+			"type":    member.Type,
+			"contact": gin.H{
+				"qq":     member.Qq,
+				"wechat": member.Wechat,
+				"tel":    member.Tel,
+			},
+			"walk_status": member.WalkStatus,
+		})
+	}
+	point := constant.GetPointName(team.Route, team.Point)
+	utility.ResponseSuccess(c, gin.H{
+		"team": gin.H{
+			"id":          team.ID,
+			"name":        team.Name,
+			"route":       team.Route,
+			"password":    team.Password,
+			"allow_match": team.AllowMatch,
+			"slogan":      team.Slogan,
+			"point":       point,
+			"status":      team.Status,
+			"start_num":   team.StartNum,
+			"code":        team.Code,
+		},
+		"member": memberData,
+	})
 }
