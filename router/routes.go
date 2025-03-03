@@ -95,5 +95,8 @@ func MountRoutes(router *gin.Engine) {
 		adminApi.GET("/timeout", admin.GetTimeoutUsers)                                  // 获取超时未提交的用户
 		adminApi.GET("/timeout/download", admin.DownloadTimeoutUsers)                    // 下载超时未提交的用户
 		adminApi.GET("/team/status/secret", admin.GetTeamBySecret)                       // 通过密钥获取队伍信息
+		adminApi.POST("/test/create", admin.CreateTestTeams)                             // 创建测试队伍
+		adminApi.POST("/test/delete", admin.DeleteTestTeams)                             // 删除测试队伍
+		adminApi.POST("/test/update", admin.UpdateTestTeams)                             // 更新测试队伍
 	}
 }

@@ -66,7 +66,7 @@ func GetAdminByJWT(context *gin.Context) (*model.Admin, error) {
 func GetTimeoutTeams(min int, route uint8) (map[int8][]model.Team, error) {
 	var teams []model.Team
 	duration := time.Duration(min) * time.Minute
-	result := global.DB.Where("time < ? And route = ?", time.Now().Add(-duration), route).Not("status = 4").Find(&teams)
+	result := global.DB.Where("time < ? And route = ?", time.Now().Add(-duration), route).Not("status = 4").Not("status = 1").Find(&teams)
 	if result.Error != nil {
 		return nil, result.Error
 	}
