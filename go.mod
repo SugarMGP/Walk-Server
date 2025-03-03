@@ -7,6 +7,7 @@ require (
 	github.com/gin-gonic/gin v1.9.1
 	github.com/go-resty/resty/v2 v2.7.0
 	github.com/golang-jwt/jwt v3.2.2+incompatible
+	github.com/google/martian v2.1.0+incompatible
 	github.com/juju/ratelimit v1.0.2
 	github.com/redis/go-redis/v9 v9.1.0
 	github.com/silenceper/wechat/v2 v2.1.5

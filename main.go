@@ -2,7 +2,6 @@ package main
 
 import (
 	"walk-server/global"
-	"walk-server/middleware"
 	"walk-server/router"
 	"walk-server/utility"
 	"walk-server/utility/initial"
@@ -27,7 +26,7 @@ func main() {
 	// 初始化路由
 	r := initial.RouterInit()
 	r.Static("/file", "./file")
-	r.Use(middleware.Time())
+	//r.Use(middleware.Time())
 	router.MountRoutes(r)
 
 	// 启动服务器

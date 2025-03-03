@@ -181,7 +181,8 @@ func UpdateTestTeams(c *gin.Context) {
 		// 3. 更新测试队伍状态和随机 Point
 		for _, team := range teams {
 			team.Status = 2
-			team.Time = time.Now()
+			team.Time = time.Now().Add(time.Duration(-1*rand.Intn(60)) * time.Minute).Add(time.Duration(-1*rand.Intn(24)) * time.Hour)
+			team.Submit = true
 			team.Point = int8(rand.Intn(7)) // 生成 0 到 6 之间的随机数
 
 			if err := tx.Save(&team).Error; err != nil {

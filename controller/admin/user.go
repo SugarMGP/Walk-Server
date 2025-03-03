@@ -277,14 +277,15 @@ func DownloadTimeoutUsers(c *gin.Context) {
 	}
 
 	// 保存为 Excel 文件
-	filename := "Route" + fmt.Sprint(postForm.Route) + "TimeoutUser.xlsx"
-	filepath := "./file/" // 文件保存路径
+	fileName := "Route" + fmt.Sprint(postForm.Route) + "TimeoutUser.xlsx"
+	filePath := "./file/" // 文件保存路径
 	host := global.Config.GetString("frontend.url")
-	url, err := utility.CreateExcelFile(data, filename, filepath, host)
+	url, err := utility.CreateExcelFile(data, fileName, filePath, host)
 	if err != nil {
 		utility.ResponseError(c, "生成文件失败")
 		return
 	}
+	//url := host + filepath.Join(filePath, fileName)
 
 	// 返回文件下载 URL
 	utility.ResponseSuccess(c, gin.H{
