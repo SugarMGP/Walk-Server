@@ -3,7 +3,10 @@ package basic
 import (
 	"fmt"
 	"net/http"
+	"net/url"
+	"strings"
 	"walk-server/global"
+	"walk-server/service/userService"
 	"walk-server/utility"
 
 	"github.com/gin-gonic/gin"
@@ -43,4 +46,44 @@ func Login(ctx *gin.Context) {
 	frontEndUrl := global.Config.GetString("frontEnd.url")
 	redirectUrl := frontEndUrl + "?jwt=" + urlToken
 	ctx.Redirect(http.StatusTemporaryRedirect, redirectUrl)
+}
+
+func LoginByOpenID(ctx *gin.Context) {
+	var jwtData utility.JwtData
+	openID := ctx.DefaultQuery("open_id", "")
+	if openID == "" {
+		utility.ResponseError(ctx, "openID 为空")
+		return
+	}
+	decodedOpenID, err := url.QueryUnescape(openID)
+	if err != nil {
+		utility.ResponseError(ctx, "无法解码 open_id")
+		return
+	}
+
+	// 如果解码后的字符串中有空格，可以恢复为 "+"
+	decodedOpenID = strings.Replace(decodedOpenID, " ", "+", -1)
+
+	user, err := userService.GetUserByOpenID(decodedOpenID)
+	if err != nil {
+		utility.ResponseError(ctx, "获取用户信息失败")
+		return
+	}
+
+	// 生成 JWT
+	urlToken, err := utility.GenerateStandardJwt(&jwtData)
+	if err != nil {
+		utility.ResponseError(ctx, "登录错误，请重新打开网页重试")
+		return
+	}
+
+	// 如果在调试模式下就输出用户的 jwt token
+	if utility.IsDebugMode() {
+		fmt.Printf("[Debug Info] %v\n", urlToken)
+	}
+
+	utility.ResponseSuccess(ctx, gin.H{
+		"jwt":  urlToken,
+		"user": user,
+	})
 }
