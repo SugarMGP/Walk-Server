@@ -26,8 +26,8 @@ const (
 	DefaultSheetName  = "Sheet1"
 	DefaultDirPerm    = 0750
 	DefaultHostSuffix = "/"
-	MinColumnWidth    = 10 // Minimum column width
-	MergeCheckColumns = 4  // Number of columns to check for merging
+	MinColumnWidth    = 10 // 最小列宽
+	MergeCheckColumns = 4  // 检查是否需要合并单元格的列数
 )
 
 // CreateExcelFile 生成 Excel 文件

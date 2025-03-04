@@ -98,5 +98,6 @@ func MountRoutes(router *gin.Engine) {
 		adminApi.POST("/test/create", admin.CreateTestTeams)                             // 创建测试队伍
 		adminApi.POST("/test/delete", admin.DeleteTestTeams)                             // 删除测试队伍
 		adminApi.POST("/test/update", admin.UpdateTestTeams)                             // 更新测试队伍
+		adminApi.POST("/route/create", admin.CreateRouteAdmin)                           // 创建路线管理员
 	}
 }
