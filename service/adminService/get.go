@@ -78,3 +78,9 @@ func GetTimeoutTeams(min int, route uint8) (map[int8][]model.Team, error) {
 
 	return teamMap, nil
 }
+
+func GetNoShowTeams(route uint8) ([]model.Team, error) {
+	var teams []model.Team
+	result := global.DB.Where("status = 1 And route = ?", route).Find(&teams)
+	return teams, result.Error
+}
