@@ -22,7 +22,7 @@ func TimeValidity(ctx *gin.Context) {
 // IsExpired 检查是否过了报名时间，报名时间过了就无法修改用户信息了
 func IsExpired(context *gin.Context) {
 	expiredTime, _ := time.ParseInLocation(
-		utility.TimeLayout,
+		time.DateTime,
 		global.Config.GetString("expiredDate"),
 		time.Local,
 	)
