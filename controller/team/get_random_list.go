@@ -40,49 +40,32 @@ func GetRandomList(context *gin.Context) {
 	var teamList []gin.H
 
 	// 先查找 3 人以下的团队
-	result := global.DB.Raw("SELECT * "+
-		"FROM teams, ( "+
-		"SELECT id AS sid, route, num, allow_match "+
-		"FROM teams WHERE route = ? AND num <= 3 AND allow_match = 1 "+
-		"ORDER BY RAND() "+
-		"LIMIT 3 "+
-		") tmp "+
-		"WHERE teams.id = tmp.sid",
-		getRandomListData.Route,
-	).Scan(&teams)
-	teamNum1 := result.RowsAffected
+	global.DB.Model(&model.Team{}).
+		Where("route = ? AND num <= 3 AND allow_match = 1", getRandomListData.Route).
+		Order("RAND()").
+		Limit(3).
+		Find(&teams)
+	teamNum1 := len(teams)
 	teamList = addTeamData(teamList, &teams)
 
-	// 查找 4 人团队	
+	// 查找 4 人团队
 	teams = teams[:0]
-	result = global.DB.Raw("SELECT * "+
-		"FROM teams, ( "+
-		"SELECT id AS sid, route, num, allow_match "+
-		"FROM teams WHERE route = ? AND num = 4 AND allow_match = 1 "+
-		"ORDER BY RAND() "+
-		"LIMIT ? "+
-		") tmp "+
-		"WHERE teams.id = tmp.sid",
-		getRandomListData.Route,
-		1+(3-int(teamNum1)),
-	).Scan(&teams)
-	teamNum2 := result.RowsAffected
+	global.DB.Model(&model.Team{}).
+		Where("route = ? AND num = 4 AND allow_match = 1", getRandomListData.Route).
+		Order("RAND()").
+		Limit(4 - teamNum1).
+		Find(&teams)
+	teamNum2 := len(teams)
 	teamList = addTeamData(teamList, &teams)
 
 	// 查找 5 人团队
 	teams = teams[:0]
-	result = global.DB.Raw("SELECT * "+
-		"FROM teams, ( "+
-		"SELECT id AS sid, route, num, allow_match "+
-		"FROM teams WHERE route = ? AND num = 5 AND allow_match = 1 "+
-		"ORDER BY RAND() "+
-		"LIMIT ? "+
-		") tmp "+
-		"WHERE teams.id = tmp.sid",
-		getRandomListData.Route,
-		1+(1-int(teamNum2))+(3-int(teamNum1)),
-	).Scan(&teams)
-	teamNum3 := result.RowsAffected
+	global.DB.Model(&model.Team{}).
+		Where("route = ? AND num = 5 AND allow_match = 1", getRandomListData.Route).
+		Order("RAND()").
+		Limit(5 - teamNum2 - teamNum1).
+		Find(&teams)
+	teamNum3 := len(teams)
 	teamList = addTeamData(teamList, &teams)
 
 	if teamNum1+teamNum2+teamNum3 == 0 { // 没有查询结果
