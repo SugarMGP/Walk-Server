@@ -1,7 +1,9 @@
 package basic
 
 import (
+	"errors"
 	"fmt"
+	"gorm.io/gorm"
 	"net/http"
 	"net/url"
 	"strings"
@@ -65,10 +67,12 @@ func LoginByOpenID(ctx *gin.Context) {
 	decodedOpenID = strings.Replace(decodedOpenID, " ", "+", -1)
 
 	user, err := userService.GetUserByOpenID(decodedOpenID)
-	if err != nil {
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		utility.ResponseError(ctx, "获取用户信息失败")
 		return
 	}
+
+	jwtData.OpenID = decodedOpenID
 
 	// 生成 JWT
 	urlToken, err := utility.GenerateStandardJwt(&jwtData)

@@ -1,6 +1,9 @@
 package register
 
 import (
+	"errors"
+	"github.com/zjutjh/WeJH-SDK/oauth"
+	"github.com/zjutjh/WeJH-SDK/oauth/oauthException"
 	"walk-server/global"
 	"walk-server/model"
 	"walk-server/utility"
@@ -10,13 +13,12 @@ import (
 
 // StudentRegisterData 定义接收学生报名用的数据的类型
 type StudentRegisterData struct {
-	Name    string `json:"name" binding:"required"`
-	StuID   string `json:"stu_id" binding:"required"`
-	ID      string `json:"id" binding:"required"`
-	Gender  int8   `json:"gender" binding:"required"`
-	College string `json:"college" binding:"required"`
-	Campus  uint8  `json:"campus" binding:"required"`
-	Contact struct {
+	Name     string `json:"name" binding:"required"`
+	StuID    string `json:"stu_id" binding:"required"`
+	Password string `json:"password" binding:"required"`
+	ID       string `json:"id" binding:"required"`
+	Campus   uint8  `json:"campus" binding:"required"`
+	Contact  struct {
 		QQ     string `json:"qq"`
 		Wechat string `json:"wechat"`
 		Tel    string `json:"tel" binding:"required"`
@@ -43,13 +45,40 @@ func StudentRegister(context *gin.Context) {
 		return
 	}
 
+	_, info, err := oauth.GetUserInfo(postData.StuID, postData.Password)
+	var oauthErr *oauthException.Error
+	if errors.As(err, &oauthErr) {
+		if errors.Is(oauthErr, oauthException.WrongAccount) || errors.Is(oauthErr, oauthException.WrongAccount) {
+			utility.ResponseError(context, "账号或密码错误")
+			return
+		} else if errors.Is(oauthErr, oauthException.ClosedError) {
+			utility.ResponseError(context, "统一夜间关闭，请白天尝试")
+			return
+		} else if errors.Is(oauthErr, oauthException.NotActivatedError) {
+			utility.ResponseError(context, "账号未激活，请自行到统一网站重新激活")
+			return
+		} else {
+			utility.ResponseError(context, "系统错误，请稍后再试")
+			return
+		}
+	} else if err != nil {
+		utility.ResponseError(context, "系统错误，请稍后再试")
+		return
+	}
+	var gender int8
+	if info.Gender == "male" {
+		gender = 1
+	} else {
+		gender = 2
+	}
+
 	person := model.Person{
 		OpenId:     jwtData.OpenID,
 		Name:       postData.Name,
-		Gender:     postData.Gender,
+		Gender:     gender,
 		StuId:      postData.StuID,
 		Status:     0,
-		College:    postData.College,
+		College:    info.College,
 		Identity:   postData.ID,
 		Campus:     postData.Campus,
 		Qq:         postData.Contact.QQ,
@@ -61,7 +90,6 @@ func StudentRegister(context *gin.Context) {
 		WalkStatus: 1,
 		Type:       1,
 	}
-
 	result = global.DB.Create(&person)
 	if result.RowsAffected == 0 {
 		utility.ResponseError(context, "报名失败，请重试")

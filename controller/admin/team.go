@@ -494,6 +494,11 @@ type GetDetailForm struct {
 	Secret string `form:"secret" binding:"required"`
 }
 
+type RouteDetail struct {
+	Count int64  `json:"count"`
+	Label string `json:"label"`
+}
+
 // GetDetail 获取全部路线的点位信息
 func GetDetail(c *gin.Context) {
 	var postForm GetDetailForm
@@ -577,13 +582,42 @@ func GetDetail(c *gin.Context) {
 		appendEndCounts(route, resultMap[key])
 	}
 
+	processRoute := func(routeName string, routeID int) []RouteDetail {
+		details := make([]RouteDetail, len(resultMap[routeName]))
+		for i, count := range resultMap[routeName] {
+			label := ""
+			switch i {
+			case 0:
+				label = "未开始"
+			case len(resultMap[routeName]) - 2:
+				label = "已结束"
+			case len(resultMap[routeName]) - 1:
+				label = "下撤"
+			default:
+				label = constant.GetPointName(uint8(routeID), int8(i-1))
+			}
+			details[i] = RouteDetail{
+				Count: count,
+				Label: label,
+			}
+		}
+		return details
+	}
+
+	// 处理各路线的数据
+	zhDetails := processRoute("zh", 1)
+	pfAllDetails := processRoute("pfAll", 3)
+	pfHalfDetails := processRoute("pfHalf", 2)
+	mgsHalfDetails := processRoute("mgsHalf", 4)
+	mgsAllDetails := processRoute("mgsAll", 5)
+
 	// 返回结果
 	utility.ResponseSuccess(c, gin.H{
-		"zh":      resultMap["zh"],
-		"pfAll":   resultMap["pfAll"],
-		"pfHalf":  resultMap["pfHalf"],
-		"mgsHalf": resultMap["mgsHalf"],
-		"mgsAll":  resultMap["mgsAll"],
+		"zh":      zhDetails,
+		"pfAll":   pfAllDetails,
+		"pfHalf":  pfHalfDetails,
+		"mgsHalf": mgsHalfDetails,
+		"mgsAll":  mgsAllDetails,
 	})
 }
 
