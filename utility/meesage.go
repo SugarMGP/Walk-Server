@@ -9,7 +9,7 @@ import (
 	"github.com/go-resty/resty/v2"
 )
 
-// SaveMessageToMembers 队长将消息发给队员
+// SendMessageToMembers 队长将消息发给队员
 func SendMessageToMembers(message string, captain model.Person, members []model.Person) {
 	var messages []model.Message
 
