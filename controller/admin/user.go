@@ -150,6 +150,13 @@ func GetTimeoutUsers(c *gin.Context) {
 		return
 	}
 
+	// 获取未到队伍
+	noShowTeams, err := adminService.GetNoShowTeams(postForm.Route)
+	if err != nil {
+		utility.ResponseError(c, "获取失败，请稍后重试")
+		return
+	}
+
 	results := make([]PointUsers, 0, len(teamMap)) // 按 teamMap 的长度预分配空间
 
 	for point, teams := range teamMap {
@@ -173,7 +180,27 @@ func GetTimeoutUsers(c *gin.Context) {
 		}
 		// 存入有序结构
 		results = append(results, PointUsers{Point: point, Location: constant.GetPointName(postForm.Route, point), Users: users})
+
 	}
+	users := make([]User, 0, len(noShowTeams)*4) // 按 teams 的长度预分配空间
+	for _, team := range noShowTeams {
+		person, persons := model.GetPersonsInTeam(int(team.ID))
+
+		// 筛选成员
+		filteredUsers := make([]User, 0, 6)
+		switch postForm.Type {
+		case 0:
+			filteredUsers = append(filteredUsers, buildUserData(person, team))
+			for _, member := range persons {
+				filteredUsers = append(filteredUsers, buildUserData(member, team))
+			}
+		case 1, 2, 3:
+			filteredUsers = append(filteredUsers, filterMembersByType(person, persons, postForm.Type, team)...)
+		}
+
+		users = append(users, filteredUsers...)
+	}
+	results = append(results, PointUsers{Point: -1, Location: "未到", Users: users})
 
 	// 按 `point` 排序，保证顺序
 	sort.Slice(results, func(i, j int) bool { return results[i].Point < results[j].Point })
@@ -285,7 +312,6 @@ func DownloadTimeoutUsers(c *gin.Context) {
 		utility.ResponseError(c, "生成文件失败")
 		return
 	}
-	//url := host + filepath.Join(filePath, fileName)
 
 	// 返回文件下载 URL
 	utility.ResponseSuccess(c, gin.H{
