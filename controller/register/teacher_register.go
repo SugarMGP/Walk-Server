@@ -1,6 +1,9 @@
 package register
 
 import (
+	"errors"
+	"github.com/zjutjh/WeJH-SDK/oauth"
+	"github.com/zjutjh/WeJH-SDK/oauth/oauthException"
 	"walk-server/global"
 	"walk-server/model"
 	"walk-server/utility"
@@ -10,11 +13,11 @@ import (
 
 // TeacherRegisterData 定义接收校友报名用的数据的类型
 type TeacherRegisterData struct {
-	Name    string `json:"name" binding:"required"`
-	ID      string `json:"id" binding:"required"`
-	StuID   string `json:"stu_id" binding:"required"`
-	Gender  int8   `json:"gender" binding:"required"`
-	Contact struct {
+	Name     string `json:"name" binding:"required"`
+	ID       string `json:"id" binding:"required"`
+	StuID    string `json:"stu_id" binding:"required"`
+	Password string `json:"password" binding:"required"`
+	Contact  struct {
 		QQ     string `json:"qq"`
 		Wechat string `json:"wechat"`
 		Tel    string `json:"tel" binding:"required"`
@@ -41,12 +44,40 @@ func TeacherRegister(context *gin.Context) {
 		return
 	}
 
+	_, info, err := oauth.GetUserInfo(postData.StuID, postData.Password)
+	var oauthErr *oauthException.Error
+	if errors.As(err, &oauthErr) {
+		if errors.Is(oauthErr, oauthException.WrongAccount) || errors.Is(oauthErr, oauthException.WrongAccount) {
+			utility.ResponseError(context, "账号或密码错误")
+			return
+		} else if errors.Is(oauthErr, oauthException.ClosedError) {
+			utility.ResponseError(context, "统一夜间关闭，请白天尝试")
+			return
+		} else if errors.Is(oauthErr, oauthException.NotActivatedError) {
+			utility.ResponseError(context, "账号未激活，请自行到统一网站重新激活")
+			return
+		} else {
+			utility.ResponseError(context, "系统错误，请稍后再试")
+			return
+		}
+	} else if err != nil {
+		utility.ResponseError(context, "系统错误，请稍后再试")
+		return
+	}
+	var gender int8
+	if info.Gender == "male" {
+		gender = 1
+	} else {
+		gender = 2
+	}
+
 	person := model.Person{
 		OpenId:     jwtData.OpenID,
 		StuId:      postData.StuID,
 		Name:       postData.Name,
-		Gender:     postData.Gender,
+		Gender:     gender,
 		Identity:   postData.ID,
+		College:    info.College,
 		Status:     0,
 		Qq:         postData.Contact.QQ,
 		Wechat:     postData.Contact.Wechat,
