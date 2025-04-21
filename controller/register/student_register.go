@@ -65,6 +65,10 @@ func StudentRegister(context *gin.Context) {
 		utility.ResponseError(context, "系统错误，请稍后再试")
 		return
 	}
+	if info.UserType == "教师职工" {
+		utility.ResponseError(context, "您是教师职工，请返回教师注册")
+		return
+	}
 	var gender int8
 	if info.Gender == "male" {
 		gender = 1

@@ -47,7 +47,7 @@ func TeacherRegister(context *gin.Context) {
 	_, info, err := oauth.GetUserInfo(postData.StuID, postData.Password)
 	var oauthErr *oauthException.Error
 	if errors.As(err, &oauthErr) {
-		if errors.Is(oauthErr, oauthException.WrongAccount) || errors.Is(oauthErr, oauthException.WrongAccount) {
+		if errors.Is(oauthErr, oauthException.WrongAccount) || errors.Is(oauthErr, oauthException.WrongPassword) {
 			utility.ResponseError(context, "账号或密码错误")
 			return
 		} else if errors.Is(oauthErr, oauthException.ClosedError) {
@@ -62,6 +62,10 @@ func TeacherRegister(context *gin.Context) {
 		}
 	} else if err != nil {
 		utility.ResponseError(context, "系统错误，请稍后再试")
+		return
+	}
+	if info.UserType != "教师职工" {
+		utility.ResponseError(context, "您不是教师职工，请返回学生注册")
 		return
 	}
 	var gender int8
