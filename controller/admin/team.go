@@ -225,22 +225,13 @@ func UpdateTeamStatus(c *gin.Context) {
 
 	// 各路线点位签到逻辑设置
 	switch team.Route {
-	case 5:
-		switch {
-		case team.Point == 1 && (user.Point == 2 || user.Point == 5):
-			team.Point = 2
-		case team.Point == 4 && (user.Point == 2 || user.Point == 5):
-			team.Point = 5
-		default:
-			team.Point = user.Point
-		}
 	case 2:
 		if user.Route == 3 && (user.Point == 2 || user.Point == 3 || user.Point == 4) {
 			utility.ResponseError(c, "该队伍为半程路线")
 			return
 		}
 		if user.Point > 2 {
-			team.Point = user.Point - 2
+			team.Point = user.Point - 1
 		} else {
 			team.Point = user.Point
 		}

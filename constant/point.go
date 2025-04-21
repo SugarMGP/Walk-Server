@@ -31,12 +31,11 @@ var PFHalfMap = map[int8]string{
 var PFAllMap = map[int8]string{
 	0: "起点",
 	1: "金莲寺",
-	2: "白龙潭",
-	3: "慈母桥",
-	4: "元帅亭",
-	5: "屏峰山",
-	6: "屏峰善院",
-	7: "终点",
+	2: "慈母桥",
+	3: "元帅亭",
+	4: "屏峰山",
+	5: "屏峰善院",
+	6: "终点",
 }
 var MgsHalfMap = map[int8]string{
 	0: "起点",
@@ -45,13 +44,10 @@ var MgsHalfMap = map[int8]string{
 
 var MgsAllMap = map[int8]string{
 	0: "起点",
-	1: "石山古寺",
-	2: "下渚湖",
-	3: "观景塔",
-	4: "科普馆",
-	5: "下渚湖",
-	6: "天安云谷",
-	7: "终点",
+	1: "杨家山",
+	2: "丁家桥",
+	3: "秋山公园",
+	4: "终点",
 }
 
 // GetPointName 用于根据 Route 和 Point 返回对应的点位名称
