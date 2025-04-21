@@ -39,9 +39,9 @@ func StudentRegister(context *gin.Context) {
 	}
 
 	var user model.Person
-	result := global.DB.Where("identity = ? Or tel = ?", postData.ID, postData.Contact.Tel).Take(&user)
+	result := global.DB.Where("stu_id =? Or identity = ? Or tel = ?", postData.StuID, postData.ID, postData.Contact.Tel).Take(&user)
 	if result.RowsAffected != 0 {
-		utility.ResponseError(context, "您已经注册过了，请到登录页面登录")
+		utility.ResponseError(context, "已有身份信息，请检查是否填写错误")
 		return
 	}
 
@@ -96,7 +96,7 @@ func StudentRegister(context *gin.Context) {
 	}
 	result = global.DB.Create(&person)
 	if result.RowsAffected == 0 {
-		utility.ResponseError(context, "报名失败，请重试")
+		utility.ResponseError(context, "报名失败，请检查后重试")
 	} else {
 		utility.ResponseSuccess(context, nil)
 	}
