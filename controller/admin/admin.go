@@ -2,8 +2,8 @@ package admin
 
 import (
 	"crypto/rand"
+	"fmt"
 	"github.com/gin-gonic/gin"
-	"strings"
 	"walk-server/global"
 	"walk-server/model"
 	"walk-server/utility"
@@ -44,10 +44,15 @@ func CreateRouteAdmin(c *gin.Context) {
 	processData := func(data [][]Data, point int8) {
 		for i := 0; i < len(data); i++ {
 			for j := 0; j < len(data[i]); j++ {
+				pwd, err := generateRandomPassword()
+				if err != nil {
+					utility.ResponseError(c, "密码生成错误: "+err.Error())
+					return
+				}
 				admins = append(admins, model.Admin{
 					Name:     data[i][j].Name,
 					Account:  data[i][j].Account,
-					Password: generateRandomPassword(),
+					Password: pwd,
 					Point:    point,
 					Route:    uint8(j),
 				})
@@ -72,31 +77,24 @@ func CreateRouteAdmin(c *gin.Context) {
 	})
 }
 
-// generateRandomString 生成一个指定长度的随机字符串，使用字母和数字。
-func generateRandomString(n int) string {
-	sb := strings.Builder{}
-	sb.Grow(n)
-
+// generateRandomString 生成一个指定长度的随机字符串，使用字母和数字
+func generateRandomString(n int) (string, error) {
 	// 创建一个字节切片来存储随机字节
 	randomBytes := make([]byte, n)
 
 	// 使用 crypto/rand.Read 填充字节切片
-	_, err := rand.Read(randomBytes)
-	if err != nil {
-		panic("无法生成随机字节: " + err.Error()) // 在生产环境中，不要 panic，而是返回错误
+	if _, err := rand.Read(randomBytes); err != nil {
+		return "", fmt.Errorf("无法生成随机字节: %v", err)
 	}
 
 	// 将随机字节转换为字符串
-	for i := 0; i < n; i++ {
-		// 使用字节值作为 letterBytes 的索引
-		sb.WriteByte(letterBytes[randomBytes[i]%byte(len(letterBytes))])
+	for i := range randomBytes {
+		randomBytes[i] = letterBytes[randomBytes[i]%byte(len(letterBytes))]
 	}
-
-	return sb.String()
+	return string(randomBytes), nil
 }
 
-// generateRandomAccountAndPassword 生成一个随机账号和一个固定密码。
-func generateRandomPassword() string {
-	account := generateRandomString(6) // 6 个随机字母数字字符
-	return account
+// generateRandomPassword 生成一个随机密码
+func generateRandomPassword() (string, error) {
+	return generateRandomString(6) // 6 个随机字母数字字符
 }
