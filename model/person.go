@@ -11,7 +11,7 @@ import (
 
 type Person struct {
 	OpenId     string `gorm:"primaryKey;size:64;not null;comment:微信OpenID"` // openID
-	Name       string `gorm:"size:32;not null;comment:姓名"`
+	Name       string `gorm:"size:128;not null;comment:姓名"`
 	Gender     int8   `gorm:"not null;comment:性别(1男,2女)"`
 	StuId      string `gorm:"size:32;unique;comment:学号"`
 	Campus     uint8  `gorm:"not null;comment:校区(1朝晖,2屏峰,3莫干山)"`

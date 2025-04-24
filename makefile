@@ -8,7 +8,7 @@ GOARCH := amd64
 # Go file
 TARGET := main
 
-FILE := walk2024
+FILE := walk2024_lite
 
 # Default target
 all: build

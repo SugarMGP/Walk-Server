@@ -13,7 +13,6 @@ import (
 
 // TeacherRegisterData 定义接收校友报名用的数据的类型
 type TeacherRegisterData struct {
-	Name     string `json:"name" binding:"required"`
 	ID       string `json:"id" binding:"required"`
 	StuID    string `json:"stu_id" binding:"required"`
 	Password string `json:"password" binding:"required"`
@@ -44,7 +43,7 @@ func TeacherRegister(context *gin.Context) {
 		return
 	}
 
-	_, info, err := oauth.GetUserInfo(postData.StuID, postData.Password)
+	cookie, info, err := oauth.GetUserInfo(postData.StuID, postData.Password)
 	var oauthErr *oauthException.Error
 	if errors.As(err, &oauthErr) {
 		if errors.Is(oauthErr, oauthException.WrongAccount) || errors.Is(oauthErr, oauthException.WrongPassword) {
@@ -64,7 +63,11 @@ func TeacherRegister(context *gin.Context) {
 		utility.ResponseError(context, "系统错误，请稍后再试")
 		return
 	}
-	if info.UserType != "教师职工" {
+	if cookie == nil {
+		utility.ResponseError(context, "统一验证失败，请稍后再试")
+		return
+	}
+	if info.UserTypeDesc != "教师职工" {
 		utility.ResponseError(context, "您不是教师职工，请返回学生注册")
 		return
 	}
@@ -78,7 +81,7 @@ func TeacherRegister(context *gin.Context) {
 	person := model.Person{
 		OpenId:     jwtData.OpenID,
 		StuId:      postData.StuID,
-		Name:       postData.Name,
+		Name:       info.Name,
 		Gender:     gender,
 		Identity:   postData.ID,
 		College:    info.College,

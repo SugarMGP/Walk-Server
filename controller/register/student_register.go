@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/zjutjh/WeJH-SDK/oauth"
 	"github.com/zjutjh/WeJH-SDK/oauth/oauthException"
+	"log"
 	"walk-server/global"
 	"walk-server/model"
 	"walk-server/utility"
@@ -13,7 +14,6 @@ import (
 
 // StudentRegisterData 定义接收学生报名用的数据的类型
 type StudentRegisterData struct {
-	Name     string `json:"name" binding:"required"`
 	StuID    string `json:"stu_id" binding:"required"`
 	Password string `json:"password" binding:"required"`
 	ID       string `json:"id" binding:"required"`
@@ -45,10 +45,10 @@ func StudentRegister(context *gin.Context) {
 		return
 	}
 
-	_, info, err := oauth.GetUserInfo(postData.StuID, postData.Password)
+	cookie, info, err := oauth.GetUserInfo(postData.StuID, postData.Password)
 	var oauthErr *oauthException.Error
 	if errors.As(err, &oauthErr) {
-		if errors.Is(oauthErr, oauthException.WrongAccount) || errors.Is(oauthErr, oauthException.WrongAccount) {
+		if errors.Is(oauthErr, oauthException.WrongAccount) || errors.Is(oauthErr, oauthException.WrongPassword) {
 			utility.ResponseError(context, "账号或密码错误")
 			return
 		} else if errors.Is(oauthErr, oauthException.ClosedError) {
@@ -65,7 +65,11 @@ func StudentRegister(context *gin.Context) {
 		utility.ResponseError(context, "系统错误，请稍后再试")
 		return
 	}
-	if info.UserType == "教师职工" {
+	if cookie == nil {
+		utility.ResponseError(context, "统一验证失败，请稍后再试")
+		return
+	}
+	if info.UserTypeDesc == "教师职工" {
 		utility.ResponseError(context, "您是教师职工，请返回教师注册")
 		return
 	}
@@ -78,7 +82,7 @@ func StudentRegister(context *gin.Context) {
 
 	person := model.Person{
 		OpenId:     jwtData.OpenID,
-		Name:       postData.Name,
+		Name:       info.Name,
 		Gender:     gender,
 		StuId:      postData.StuID,
 		Status:     0,
