@@ -4,7 +4,6 @@ import (
 	"errors"
 	"github.com/zjutjh/WeJH-SDK/oauth"
 	"github.com/zjutjh/WeJH-SDK/oauth/oauthException"
-	"log"
 	"walk-server/global"
 	"walk-server/model"
 	"walk-server/utility"

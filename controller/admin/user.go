@@ -10,6 +10,7 @@ import (
 	"walk-server/middleware"
 	"walk-server/model"
 	"walk-server/service/adminService"
+	"walk-server/service/teamService"
 	"walk-server/service/userService"
 	"walk-server/utility"
 
@@ -73,6 +74,29 @@ func UserStatus(c *gin.Context) {
 			person.WalkStatus = 4
 		}
 		userService.Update(*person)
+	}
+
+	// 检查队伍是否已经没人在行
+	for _, user := range users {
+		num := 0
+		team, exists := teams[user.TeamId]
+		if !exists {
+			continue
+		}
+		persons, err := userService.GetUsersByTeamID(team.ID)
+		if err != nil {
+			utility.ResponseError(c, "获取队伍成员失败")
+			return
+		}
+		for _, person := range persons {
+			if person.WalkStatus != 4 {
+				num++
+			}
+		}
+		if num == 0 {
+			team.Status = 3
+			teamService.Update(team)
+		}
 	}
 
 	utility.ResponseSuccess(c, nil)

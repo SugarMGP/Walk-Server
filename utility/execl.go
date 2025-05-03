@@ -6,8 +6,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/google/martian/log"
 	"github.com/xuri/excelize/v2"
+	"log"
 )
 
 // File excel 各单元数据结构
@@ -40,7 +40,7 @@ func CreateExcelFile(data File, fileName, filePath, host string) (string, error)
 	f := excelize.NewFile()
 	defer func() {
 		if err := f.Close(); err != nil {
-			log.Errorf("关闭 Excel 文件失败: %v", err)
+			log.Printf("关闭 Excel 文件失败: %v", err)
 		}
 	}()
 
@@ -61,7 +61,7 @@ func CreateExcelFile(data File, fileName, filePath, host string) (string, error)
 	}
 
 	if err := removeOldFile(fullPath); err != nil {
-		log.Errorf("删除旧文件失败: %v", err) // 非关键错误，记录警告
+		log.Printf("删除旧文件失败: %v", err) // 非关键错误，记录警告
 	}
 
 	if err := f.SaveAs(fullPath); err != nil {
@@ -97,7 +97,7 @@ func createSheet(f *excelize.File, sheet Sheet, index int) error {
 	}
 	defer func() {
 		if err := sw.Flush(); err != nil {
-			log.Errorf("刷新流式写入器失败: %v", err)
+			log.Printf("刷新流式写入器失败: %v", err)
 		}
 	}()
 
@@ -235,7 +235,7 @@ func autoAdjustColumnWidth(sw *excelize.StreamWriter, headers []string, rows [][
 	// 一次性设置所有列宽
 	for colIndex, width := range columnWidths {
 		if err := sw.SetColWidth(colIndex+1, colIndex+1, float64(width+1)); err != nil {
-			log.Errorf("设置列宽失败，列索引: %d, 错误: %v", colIndex+1, err) // 记录错误，但不返回
+			log.Printf("设置列宽失败，列索引: %d, 错误: %v", colIndex+1, err) // 记录错误，但不返回
 		}
 	}
 }

@@ -29,9 +29,9 @@ func MountRoutes(router *gin.Engine) {
 		// Register
 		registerApi := api.Group("/register", middleware.RegisterJWTValidity, middleware.PerRateLimiter)
 		{
-			registerApi.POST("/student", middleware.IsExpired, register.StudentRegister) // 在校生报名地址
-			registerApi.POST("/teacher", middleware.IsExpired, register.TeacherRegister) // 教职工报名地址
-			registerApi.POST("/alumnus", register.Login)                                 // 导入成员登录地址
+			registerApi.POST("/student", register.StudentRegister) // 在校生报名地址
+			registerApi.POST("/teacher", register.TeacherRegister) // 教职工报名地址
+			registerApi.POST("/alumnus", register.Login)           // 导入成员登录地址
 		}
 
 		// User
@@ -53,9 +53,9 @@ func MountRoutes(router *gin.Engine) {
 			teamApi.GET("/info", team.GetTeamInfo)                              // 获取团队信息
 			teamApi.POST("/random-list", team.GetRandomList)                    // 随机获取开放随机组队的团队列表
 			teamApi.POST("/random-join", middleware.IsExpired, team.RandomJoin) // 通过随机列表加入团队
-			teamApi.POST("/create", middleware.IsExpired, team.CreateTeam)      // 创建团队
+			teamApi.POST("/create", team.CreateTeam)                            // 创建团队
 			teamApi.POST("/update", middleware.IsExpired, team.UpdateTeam)      // 修改队伍信息
-			teamApi.POST("/join", middleware.IsExpired, team.JoinTeam)          // 加入团队
+			teamApi.POST("/join", team.JoinTeam)                                // 加入团队
 			teamApi.GET("/leave", middleware.IsExpired, team.LeaveTeam)         // 离开团队
 			teamApi.GET("/remove", middleware.IsExpired, team.RemoveMember)     // 移除队员
 			teamApi.GET("/disband", middleware.IsExpired, team.DisbandTeam)     // 解散团队
@@ -83,9 +83,9 @@ func MountRoutes(router *gin.Engine) {
 		adminApi.POST("/auth/auto", admin.WeChatLogin)                                   // 自动登录
 		adminApi.POST("/auth/without", admin.AuthWithoutCode)                            // 测试登录
 		adminApi.GET("/team/status", middleware.CheckAdmin, admin.GetTeam)               // 获取队伍信息
+		adminApi.POST("/team/user_status", middleware.CheckAdmin, admin.UserStatus)      // 更新用户状态
 		adminApi.POST("/team/bind", middleware.CheckAdmin, admin.BindTeam)               // 绑定队伍
 		adminApi.POST("/team/update", middleware.CheckAdmin, admin.UpdateTeamStatus)     // 更新队伍状态
-		adminApi.POST("/team/user_status", middleware.CheckAdmin, admin.UserStatus)      // 更新用户状态
 		adminApi.POST("/team/destination", middleware.CheckAdmin, admin.PostDestination) // 提交终点
 		adminApi.POST("/team/secret", admin.BlockWithSecret)                             // 通过密钥封禁接口
 		adminApi.POST("/team/regroup", middleware.CheckAdmin, admin.Regroup)             // 重新分组

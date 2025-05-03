@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
+	"log"
 	"strconv"
 	"walk-server/constant"
 	"walk-server/global"
@@ -96,6 +97,7 @@ func WeChatLogin(c *gin.Context) {
 
 	session, err := global.MiniProgram.GetAuth().Code2Session(postForm.Code)
 	if err != nil {
+		log.Println(err)
 		utility.ResponseError(c, "服务错误")
 		return
 	}

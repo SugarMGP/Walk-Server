@@ -6,37 +6,37 @@ import (
 )
 
 func GetTeamByID(id uint) (*model.Team, error) {
-	user := model.Team{}
+	team := model.Team{}
 	result := global.DB.Where(
 		&model.Team{
 			ID: id,
 		},
-	).First(&user)
+	).First(&team)
 
 	if result.Error != nil {
 		return nil, result.Error
 	}
-	return &user, nil
+	return &team, nil
 }
 
 func GetTeamByCode(code string) (*model.Team, error) {
-	user := model.Team{}
+	team := model.Team{}
 	result := global.DB.Where(
 		&model.Team{
 			Code: code,
 		},
-	).First(&user)
+	).First(&team)
 
-	return &user, result.Error
+	return &team, result.Error
 }
 
 func GetTeamByCaptain(captainID string) (*model.Team, error) {
-	user := model.Team{}
+	team := model.Team{}
 	result := global.DB.Where(
 		&model.Team{
 			Captain: captainID,
 		},
-	).First(&user)
+	).First(&team)
 
-	return &user, result.Error
+	return &team, result.Error
 }

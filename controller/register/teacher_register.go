@@ -16,6 +16,7 @@ type TeacherRegisterData struct {
 	ID       string `json:"id" binding:"required"`
 	StuID    string `json:"stu_id" binding:"required"`
 	Password string `json:"password" binding:"required"`
+	Campus   uint8  `json:"campus"`
 	Contact  struct {
 		QQ     string `json:"qq"`
 		Wechat string `json:"wechat"`
@@ -67,7 +68,7 @@ func TeacherRegister(context *gin.Context) {
 		utility.ResponseError(context, "统一验证失败，请稍后再试")
 		return
 	}
-	if info.UserTypeDesc != "教师职工" {
+	if info.UserTypeDesc != "教师职工" && info.UserTypeDesc != "人才派遣" {
 		utility.ResponseError(context, "您不是教师职工，请返回学生注册")
 		return
 	}

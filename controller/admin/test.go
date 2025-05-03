@@ -1,6 +1,7 @@
 package admin
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 	"math/rand"
@@ -63,14 +64,14 @@ func CreateTestTeams(c *gin.Context) {
 					OpenId:     "test" + strconv.Itoa(i) + "team" + strconv.Itoa(j),
 					Name:       "测试队伍" + strconv.Itoa(i) + "队员" + strconv.Itoa(j),
 					Gender:     1,
-					StuId:      "123",
+					StuId:      fmt.Sprintf("%011d", rand.Int63n(1e11)),
 					Campus:     1,
-					Identity:   "test" + strconv.Itoa(j),
+					Identity:   "test" + fmt.Sprintf("%011d", rand.Int63n(1e11)),
 					Status:     uint8(ternary(j == 0, 2, 1)), // 第一个人是队长
 					Qq:         "123",
 					Wechat:     "123",
 					College:    "计算机学院",
-					Tel:        "123",
+					Tel:        fmt.Sprintf("%011d", rand.Int63n(1e11)),
 					CreatedOp:  1,
 					JoinOp:     1,
 					TeamId:     int(team.ID), // 赋值 Team ID

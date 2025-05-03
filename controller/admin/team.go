@@ -122,8 +122,8 @@ func BindTeam(c *gin.Context) {
 	if err == nil {
 		utility.ResponseError(c, "二维码已绑定")
 		return
-	} else if err != gorm.ErrRecordNotFound {
-		utility.ResponseError(c, "服务错误")
+	} else if !errors.Is(err, gorm.ErrRecordNotFound) {
+		utility.ResponseError(c, "服务错误，请联系负责人")
 		return
 	}
 	var persons []model.Person
@@ -155,7 +155,7 @@ func BindTeam(c *gin.Context) {
 	team.Point = 0
 	team.Status = 5
 	team.StartNum = num
-	team.Time = time.Now().Add(8 * time.Hour)
+	team.Time = time.Now()
 	teamService.Update(*team)
 	utility.ResponseSuccess(c, nil)
 }
@@ -200,8 +200,11 @@ func UpdateTeamStatus(c *gin.Context) {
 		utility.ResponseError(c, "该队伍为其他路线")
 		return
 	}
-	if team.Status != 5 && team.Status != 2 {
+	if team.Status == 1 {
 		utility.ResponseError(c, "团队起点未扫码")
+		return
+	} else if team.Status == 3 || team.Status == 4 {
+		utility.ResponseError(c, "团队已结束，有疑问请咨询管理员")
 		return
 	}
 	var persons []model.Person
@@ -227,14 +230,20 @@ func UpdateTeamStatus(c *gin.Context) {
 	switch team.Route {
 	case 2:
 		if user.Route == 3 && (user.Point == 2 || user.Point == 3 || user.Point == 4) {
-			utility.ResponseError(c, "该队伍为半程路线")
+			utility.ResponseError(c, "该队伍为半程路线，让队伍继续往前走就行")
 			return
 		}
 		if user.Point > 2 {
-			team.Point = user.Point - 1
+			team.Point = user.Point - 2
 		} else {
 			team.Point = user.Point
 		}
+	case 3:
+		if user.Route == 2 && user.Point == 2 {
+			utility.ResponseError(c, "该队伍为全程路线，让队伍继续往前走就行")
+			return
+		}
+		team.Point = user.Point
 	default:
 		team.Point = user.Point
 	}
@@ -245,7 +254,7 @@ func UpdateTeamStatus(c *gin.Context) {
 			userService.Update(p)
 		}
 	}
-	team.Time = time.Now().Add(8 * time.Hour)
+	team.Time = time.Now()
 	team.Status = 2
 	teamService.Update(*team)
 	utility.ResponseSuccess(c, gin.H{
@@ -303,7 +312,7 @@ func PostDestination(c *gin.Context) {
 	}
 
 	team.Point = int8(constant.PointMap[team.Route])
-	team.Time = time.Now().Add(8 * time.Hour)
+	team.Time = time.Now()
 
 	if postForm.Status == 1 {
 		for _, p := range persons {
@@ -367,11 +376,11 @@ func Regroup(c *gin.Context) {
 			return
 		}
 
-		// 如果已有队伍则退出
+		// 如果已有队伍则获取队伍信息
 		if person.TeamId != -1 {
 			team, _ := teamService.GetTeamByID(uint(person.TeamId))
 			if team.Status != 1 {
-				utility.ResponseError(c, "队伍状态异常，请重新检查")
+				utility.ResponseError(c, person.Name+"的原队伍已开始，请勿重新组队")
 				return
 			}
 		}
