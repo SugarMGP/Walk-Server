@@ -8,6 +8,14 @@ var PointMap = map[uint8]uint8{
 	5: 5,
 }
 
+var RouteMap = map[uint8]string{
+	1: "朝晖",
+	2: "屏峰半程",
+	3: "屏峰全程",
+	4: "莫干山半程",
+	5: "莫干山全程",
+}
+
 var ZHMap = map[int8]string{
 	0: "起点",
 	1: "上塘映翠",
@@ -33,7 +41,7 @@ var PFAllMap = map[int8]string{
 	1: "金莲寺",
 	2: "龙门坎",
 	3: "慈母桥",
-	4: "元帅亭",
+	4: "古樟树公园",
 	5: "屏峰山",
 	6: "屏峰善院",
 	7: "终点",
