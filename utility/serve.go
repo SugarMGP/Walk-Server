@@ -53,11 +53,3 @@ func StartServer(router *gin.Engine, port string) {
 func IsDebugMode() bool {
 	return global.Config.GetBool("server.debug")
 }
-
-// NeedDB 获取服务器是否需要数据库
-func NeedDB() bool {
-	if !IsDebugMode() { // 不是调试模式一定要数据库
-		return true
-	}
-	return global.Config.GetBool("database.need")
-}

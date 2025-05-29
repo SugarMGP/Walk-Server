@@ -2,22 +2,25 @@ package model
 
 import (
 	"errors"
+	"time"
 	"walk-server/global"
 )
 
 type Team struct {
-	ID         uint
-	Name       string // 队伍的名字
-	Num        uint8  // 团队里的人数
-	Password   string // 团队加入的密码
-	Slogan     string // 团队标语
-	AllowMatch bool   // 是否接收随机匹配
-	Captain    string // 队长的 Open ID
-	Route      uint8  // 1 是朝晖路线，2 屏峰半程，3 屏峰全程，4 莫干山半程，5 莫干山全程
-	Point      int8   // 点位
-	StartNum   uint   // 开始人数
-	Status     uint8  // 1 未开始，2 进行中，3 未完成，4 完成 ,5 扫码成功
-	Submit     bool   // 是否提交（报名成功）
+	ID         uint      `gorm:"comment:队伍ID"`
+	Name       string    `gorm:"size:64;not null;comment:队伍名称"`
+	Num        uint8     `gorm:"not null;default:1;comment:团队人数"`
+	Password   string    `gorm:"size:64;not null;comment:团队加入密码"`
+	Slogan     string    `gorm:"size:128;comment:团队标语"`
+	AllowMatch bool      `gorm:"not null;default:false;comment:是否允许随机匹配"`
+	Captain    string    `gorm:"size:64;not null;comment:队长OpenID"`
+	Route      uint8     `gorm:"not null;comment:路线(1朝晖,2屏峰半程,3屏峰全程,4莫干山半程,5莫干山全程)"`
+	Point      int8      `gorm:"default:0;comment:点位"`
+	StartNum   uint      `gorm:"not null;default:0;comment:开始时人数"`
+	Status     uint8     `gorm:"not null;default:1;comment:状态(1未开始,2进行中,3未完成,4完成,5扫码成功)"`
+	Submit     bool      `gorm:"not null;default:false;comment:是否已提交报名"`
+	Code       string    `gorm:"size:128;index;comment:签到二维码绑定码"`
+	Time       time.Time `gorm:"comment:队伍状态更新时间"`
 }
 
 func GetTeamInfo(teamID uint) (*Team, error) {

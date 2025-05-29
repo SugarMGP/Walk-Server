@@ -1,9 +1,12 @@
 package admin
 
 import (
+	"errors"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
+	"log"
 	"strconv"
+	"walk-server/constant"
 	"walk-server/global"
 	"walk-server/service/adminService"
 	"walk-server/utility"
@@ -24,6 +27,16 @@ type LoginForm struct {
 	Password string `json:"password" binding:"required"`
 }
 
+type LoginResp struct {
+	ID           uint   `json:"admin_id"`
+	WechatOpenID string `json:"-"`
+	Name         string `json:"name"`
+	Account      string `json:"account"`
+	Password     string `json:"-"`
+	Point        string `json:"point"`
+	Route        uint8  `json:"route"`
+}
+
 func AuthByPassword(c *gin.Context) {
 	var postForm passwordLoginForm
 	err := c.ShouldBindJSON(&postForm)
@@ -33,7 +46,7 @@ func AuthByPassword(c *gin.Context) {
 		return
 	}
 	user, err := adminService.GetUserByAccount(postForm.Username)
-	if err == gorm.ErrRecordNotFound {
+	if errors.Is(err, gorm.ErrRecordNotFound) {
 		utility.ResponseError(c, "账号错误")
 		return
 	}
@@ -62,8 +75,15 @@ func AuthByPassword(c *gin.Context) {
 	jwtToken, err := utility.GenerateStandardJwt(&jwtData)
 
 	utility.ResponseSuccess(c, gin.H{
-		"admin": user,
-		"jwt":   jwtToken,
+		"admin": LoginResp{
+			ID:           user.ID,
+			WechatOpenID: user.WechatOpenID,
+			Name:         user.Name,
+			Account:      user.Account,
+			Point:        constant.GetPointName(user.Route, user.Point),
+			Route:        user.Route,
+		},
+		"jwt": jwtToken,
 	})
 }
 
@@ -77,6 +97,7 @@ func WeChatLogin(c *gin.Context) {
 
 	session, err := global.MiniProgram.GetAuth().Code2Session(postForm.Code)
 	if err != nil {
+		log.Println(err)
 		utility.ResponseError(c, "服务错误")
 		return
 	}
@@ -93,8 +114,15 @@ func WeChatLogin(c *gin.Context) {
 	jwtToken, err := utility.GenerateStandardJwt(&jwtData)
 
 	utility.ResponseSuccess(c, gin.H{
-		"admin": user,
-		"jwt":   jwtToken,
+		"admin": LoginResp{
+			ID:           user.ID,
+			WechatOpenID: user.WechatOpenID,
+			Name:         user.Name,
+			Account:      user.Account,
+			Point:        constant.GetPointName(user.Route, user.Point),
+			Route:        user.Route,
+		},
+		"jwt": jwtToken,
 	})
 }
 
@@ -126,7 +154,32 @@ func AuthWithoutCode(c *gin.Context) {
 	// 生成 JWT
 	jwtToken, err := utility.GenerateStandardJwt(&jwtData)
 	utility.ResponseSuccess(c, gin.H{
-		"admin": user,
-		"jwt":   jwtToken,
+		"admin": LoginResp{
+			ID:           user.ID,
+			WechatOpenID: user.WechatOpenID,
+			Name:         user.Name,
+			Account:      user.Account,
+			Point:        constant.GetPointName(user.Route, user.Point),
+			Route:        user.Route,
+		},
+		"jwt": jwtToken,
 	})
+}
+
+type BlockWithSecretForm struct {
+	Secret string `json:"secret" binding:"required"`
+}
+
+func BlockWithSecret(c *gin.Context) {
+	var postForm BlockWithSecretForm
+	err := c.ShouldBindJSON(&postForm)
+	if err != nil {
+		utility.ResponseError(c, "参数错误")
+		return
+	}
+	if postForm.Secret != global.Config.GetString("server.secret") {
+		utility.ResponseError(c, "密码错误")
+		return
+	}
+	utility.ResponseSuccess(c, nil)
 }

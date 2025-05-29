@@ -18,7 +18,7 @@ func DBInit() {
 	dbPort := global.Config.GetString("database.port")
 	dbName := global.Config.GetString("database.name")
 
-	dsn := fmt.Sprintf("%v:%v@tcp(%v:%v)/%v?charset=utf8&parseTime=true",
+	dsn := fmt.Sprintf("%v:%v@tcp(%v:%v)/%v?charset=utf8mb4&parseTime=true&loc=Asia%%2FShanghai",
 		dbUser, dbPassport, dbHost, dbPort, dbName)
 
 	var err error
@@ -32,7 +32,7 @@ func DBInit() {
 	}
 
 	// 这个地方需要填入要迁移的表
-	err = global.DB.AutoMigrate(&model.Person{}, &model.Team{}, &model.Message{}, model.Admin{})
+	err = global.DB.AutoMigrate(&model.Person{}, &model.Team{}, &model.Message{}, model.Admin{}, model.Form{})
 	if err != nil {
 		fmt.Println("数据表创建错误")
 		os.Exit(-1)

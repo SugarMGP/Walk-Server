@@ -10,21 +10,22 @@ import (
 )
 
 type Person struct {
-	OpenId     string `gorm:"primaryKey"` // openID
-	Name       string
-	Gender     int8 // 1 男，2 女
-	StuId      string
-	Campus     uint8  // 1 朝晖，2 屏峰，3 莫干山
-	Identity   string // 身份证号
-	Status     uint8  // 0 未加入团队，1 队员，2 队长
-	Qq         string
-	Wechat     string
-	College    string // 学院
-	Tel        string
-	CreatedOp  uint8 // 创建团队次数
-	JoinOp     uint8 // 加入团队次数
-	TeamId     int   `gorm:"index;default:-1"`
-	WalkStatus uint8 // 1 未开始，2 进行中，3 扫码成功，4 放弃，5 完成
+	OpenId     string `gorm:"primaryKey;size:64;not null;comment:微信OpenID"` // openID
+	Name       string `gorm:"size:128;not null;comment:姓名"`
+	Gender     int8   `gorm:"not null;comment:性别(1男,2女)"`
+	StuId      string `gorm:"size:32;unique;comment:学号"`
+	Campus     uint8  `gorm:"not null;comment:校区(1朝晖,2屏峰,3莫干山)"`
+	Identity   string `gorm:"size:18;unique;not null;comment:身份证号"`
+	Status     uint8  `gorm:"not null;default:0;comment:队伍状态(0未加入,1队员,2队长)"`
+	Qq         string `gorm:"size:20;comment:QQ号"`
+	Wechat     string `gorm:"size:64;comment:微信号"`
+	College    string `gorm:"size:64;not null;comment:学院"`
+	Tel        string `gorm:"size:20;unique;not null;comment:联系电话"`
+	CreatedOp  uint8  `gorm:"not null;default:3;comment:创建团队次数"`
+	JoinOp     uint8  `gorm:"not null;default:5;comment:加入团队次数"`
+	TeamId     int    `gorm:"index;default:-1;comment:所属团队ID"`
+	Type       uint8  `gorm:"not null;comment:人员类型(1学生,2教职工,3校友)"`
+	WalkStatus uint8  `gorm:"not null;default:1;comment:活动状态(1未开始,2进行中,3扫码成功,4放弃,5完成)"`
 }
 
 func (p *Person) MarshalBinary() (data []byte, err error) {
@@ -66,6 +67,16 @@ func UpdatePerson(encOpenID string, person *Person) {
 
 	// 更新数据库中的数据
 	global.DB.Where(&Person{OpenId: encOpenID}).Save(person)
+}
+
+func SetPerson(encOpenID string, person *Person) error {
+	// 如果缓存中存在这个数据, 先更新缓存
+	if _, err := global.Rdb.Get(global.Rctx, encOpenID).Result(); err == nil {
+		global.Rdb.Set(global.Rctx, encOpenID, person, 20*time.Minute)
+	}
+
+	// 更新数据库中的数据
+	return global.DB.Exec("UPDATE people SET open_id = ? WHERE open_id = ?", encOpenID, person.OpenId).Error
 }
 
 // 事务中更新

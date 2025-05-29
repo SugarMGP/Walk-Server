@@ -1,6 +1,7 @@
 package team
 
 import (
+	"time"
 	"walk-server/global"
 	"walk-server/model"
 	"walk-server/utility"
@@ -61,6 +62,7 @@ func CreateTeam(context *gin.Context) {
 		Point:      -1,
 		StartNum:   0,
 		Status:     1,
+		Time:       time.Now(),
 	}
 
 	// 事务

@@ -25,6 +25,8 @@ func main() {
 
 	// 初始化路由
 	r := initial.RouterInit()
+	r.Static("/file", "./file")
+	//r.Use(middleware.Time())
 	router.MountRoutes(r)
 
 	// 启动服务器

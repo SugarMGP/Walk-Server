@@ -2,3 +2,6 @@
 .DS_Store
 config/config.yaml
 walk-server
+main
+_linux
+*.log

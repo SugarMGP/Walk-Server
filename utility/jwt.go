@@ -6,23 +6,23 @@ import (
 	"walk-server/global"
 
 	"github.com/gin-gonic/gin"
-	"github.com/golang-jwt/jwt"
+	"github.com/golang-jwt/jwt/v5"
 )
 
 // JwtData 一些结构体的定义
 type JwtData struct {
 	OpenID string `json:"open_id"`
-	jwt.StandardClaims
+	jwt.RegisteredClaims
 }
 
 // GenerateStandardJwt 根据数据生成带有 standard claims 的 jwt token
 func GenerateStandardJwt(jwtData *JwtData) (string, error) {
 	claims := jwtData
-	claims.StandardClaims = jwt.StandardClaims{
-		// 过期时间
-		ExpiresAt: time.Now().Add(48 * time.Hour).Unix(), // 设置 2 天后过期
-		// 指定token发行人
-		Issuer: "JHWL",
+	claims.RegisteredClaims = jwt.RegisteredClaims{
+		ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Duration(24*7) * time.Hour)), // 过期时间（7天）
+		IssuedAt:  jwt.NewNumericDate(time.Now()),                                      // 签发时间
+		NotBefore: jwt.NewNumericDate(time.Now()),
+		Issuer:    "JHWL", // 签发人
 	}
 
 	tokenClaims := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)

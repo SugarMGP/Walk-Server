@@ -75,6 +75,5 @@ func SubmitTeam(context *gin.Context) {
 		utility.ResponseError(context, "队伍数量已经到达上限，无法提交")
 		return
 	}
-
 	utility.ResponseSuccess(context, nil)
 }

@@ -11,7 +11,7 @@ import (
 // TimeValidity Require implement ... Check if in open time
 func TimeValidity(ctx *gin.Context) {
 	if !utility.CanOpenApi() {
-		utility.ResponseError(ctx, "time error")
+		utility.ResponseError(ctx, "还没到开放时间，不能访问哦")
 		ctx.Abort()
 		return
 	}
@@ -22,7 +22,7 @@ func TimeValidity(ctx *gin.Context) {
 // IsExpired 检查是否过了报名时间，报名时间过了就无法修改用户信息了
 func IsExpired(context *gin.Context) {
 	expiredTime, _ := time.ParseInLocation(
-		utility.TimeLayout,
+		time.DateTime,
 		global.Config.GetString("expiredDate"),
 		time.Local,
 	)

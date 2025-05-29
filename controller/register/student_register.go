@@ -1,6 +1,9 @@
 package register
 
 import (
+	"errors"
+	"github.com/zjutjh/WeJH-SDK/oauth"
+	"github.com/zjutjh/WeJH-SDK/oauth/oauthException"
 	"walk-server/global"
 	"walk-server/model"
 	"walk-server/utility"
@@ -10,13 +13,11 @@ import (
 
 // StudentRegisterData 定义接收学生报名用的数据的类型
 type StudentRegisterData struct {
-	Name    string `json:"name" binding:"required"`
-	StuID   string `json:"stu_id" binding:"required"`
-	ID      string `json:"id" binding:"required"`
-	Gender  int8   `json:"gender" binding:"required"`
-	College string `json:"college" binding:"required"`
-	Campus  uint8  `json:"campus" binding:"required"`
-	Contact struct {
+	StuID    string `json:"stu_id" binding:"required"`
+	Password string `json:"password" binding:"required"`
+	ID       string `json:"id" binding:"required"`
+	Campus   uint8  `json:"campus" binding:"required"`
+	Contact  struct {
 		QQ     string `json:"qq"`
 		Wechat string `json:"wechat"`
 		Tel    string `json:"tel" binding:"required"`
@@ -36,13 +37,55 @@ func StudentRegister(context *gin.Context) {
 		return
 	}
 
+	var user model.Person
+	result := global.DB.Where("stu_id =? Or identity = ? Or tel = ?", postData.StuID, postData.ID, postData.Contact.Tel).Take(&user)
+	if result.RowsAffected != 0 {
+		utility.ResponseError(context, "已有身份信息，请检查是否填写错误")
+		return
+	}
+
+	cookie, info, err := oauth.GetUserInfo(postData.StuID, postData.Password)
+	var oauthErr *oauthException.Error
+	if errors.As(err, &oauthErr) {
+		if errors.Is(oauthErr, oauthException.WrongAccount) || errors.Is(oauthErr, oauthException.WrongPassword) {
+			utility.ResponseError(context, "账号或密码错误")
+			return
+		} else if errors.Is(oauthErr, oauthException.ClosedError) {
+			utility.ResponseError(context, "统一夜间关闭，请白天尝试")
+			return
+		} else if errors.Is(oauthErr, oauthException.NotActivatedError) {
+			utility.ResponseError(context, "账号未激活，请自行到统一网站重新激活")
+			return
+		} else {
+			utility.ResponseError(context, "系统错误，请稍后再试")
+			return
+		}
+	} else if err != nil {
+		utility.ResponseError(context, "系统错误，请稍后再试")
+		return
+	}
+	if cookie == nil {
+		utility.ResponseError(context, "统一验证失败，请稍后再试")
+		return
+	}
+	if info.UserTypeDesc == "教师职工" {
+		utility.ResponseError(context, "您是教师职工，请返回教师注册")
+		return
+	}
+	var gender int8
+	if info.Gender == "male" {
+		gender = 1
+	} else {
+		gender = 2
+	}
+
 	person := model.Person{
 		OpenId:     jwtData.OpenID,
-		Name:       postData.Name,
-		Gender:     postData.Gender,
+		Name:       info.Name,
+		Gender:     gender,
 		StuId:      postData.StuID,
 		Status:     0,
-		College:    postData.College,
+		College:    info.College,
 		Identity:   postData.ID,
 		Campus:     postData.Campus,
 		Qq:         postData.Contact.QQ,
@@ -52,11 +95,11 @@ func StudentRegister(context *gin.Context) {
 		JoinOp:     5,
 		TeamId:     -1,
 		WalkStatus: 1,
+		Type:       1,
 	}
-
-	result := global.DB.Create(&person)
+	result = global.DB.Create(&person)
 	if result.RowsAffected == 0 {
-		utility.ResponseError(context, "报名失败，请重试")
+		utility.ResponseError(context, "报名失败，请检查后重试")
 	} else {
 		utility.ResponseSuccess(context, nil)
 	}
