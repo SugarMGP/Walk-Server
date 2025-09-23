@@ -2,7 +2,6 @@ package team
 
 import (
 	"gorm.io/gorm"
-	"strconv"
 	"walk-server/global"
 	"walk-server/model"
 	"walk-server/utility"
@@ -28,12 +27,6 @@ func RemoveMember(context *gin.Context) {
 
 	var team model.Team
 	global.DB.Where("id = ?", person.TeamId).Take(&team)
-	teamID := strconv.Itoa(int(team.ID))
-	teamSubmitted, _ := global.Rdb.SIsMember(global.Rctx, "teams", teamID).Result()
-	if teamSubmitted {
-		utility.ResponseError(context, "该队伍已经提交, 无法移除队员")
-		return
-	}
 
 	// 读取 Get 参数
 	memberRemovedOpenID := context.Query("openid")
