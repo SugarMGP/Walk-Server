@@ -2,7 +2,6 @@ package team
 
 import (
 	"gorm.io/gorm"
-	"strconv"
 	"walk-server/global"
 	"walk-server/model"
 	"walk-server/utility"
@@ -28,10 +27,9 @@ func RemoveMember(context *gin.Context) {
 
 	var team model.Team
 	global.DB.Where("id = ?", person.TeamId).Take(&team)
-	teamID := strconv.Itoa(int(team.ID))
-	teamSubmitted, _ := global.Rdb.SIsMember(global.Rctx, "teams", teamID).Result()
-	if teamSubmitted {
-		utility.ResponseError(context, "该队伍已经提交, 无法移除队员")
+	teamSubmitted, _ := global.Rdb.SIsMember(global.Rctx, "teams", team.ID).Result()
+	if teamSubmitted && team.Num <= 4 {
+		utility.ResponseError(context, "队伍人数不能低于4")
 		return
 	}
 
@@ -67,8 +65,10 @@ func RemoveMember(context *gin.Context) {
 		return
 	}
 
-	// 通知被踢出的人
+	// 通知
 	utility.SendMessage("你被团队"+team.Name+"踢出", nil, personRemoved)
+
+	utility.SendMessage("你踢出了成员"+personRemoved.Name, nil, person)
 
 	utility.ResponseSuccess(context, nil)
 }

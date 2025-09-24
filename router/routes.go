@@ -58,6 +58,7 @@ func MountRoutes(router *gin.Engine) {
 			teamApi.POST("/join", team.JoinTeam)                                // 加入团队
 			teamApi.GET("/leave", middleware.IsExpired, team.LeaveTeam)         // 离开团队
 			teamApi.GET("/remove", middleware.IsExpired, team.RemoveMember)     // 移除队员
+			teamApi.GET("/add", middleware.IsExpired, team.AddMember)           // 添加队员
 			teamApi.GET("/disband", middleware.IsExpired, team.DisbandTeam)     // 解散团队
 			teamApi.GET("/rollback", middleware.IsExpired, team.RollBackTeam)   // 撤销提交
 			teamApi.POST("/captain", middleware.IsExpired, team.ChangeCaptain)  // 更换队长
