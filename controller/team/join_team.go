@@ -2,6 +2,7 @@ package team
 
 import (
 	"gorm.io/gorm"
+	"strconv"
 	"walk-server/global"
 	"walk-server/model"
 	"walk-server/utility"
@@ -48,6 +49,13 @@ func JoinTeam(context *gin.Context) {
 		return
 	} else if team.Password != joinTeamData.Password {
 		utility.ResponseError(context, "密码错误")
+		return
+	}
+
+	teamID := strconv.Itoa(int(team.ID))
+	teamSubmitted, _ := global.Rdb.SIsMember(global.Rctx, "teams", teamID).Result()
+	if teamSubmitted {
+		utility.ResponseError(context, "该队伍已提交，无法加入")
 		return
 	}
 
