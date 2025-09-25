@@ -8,7 +8,8 @@ import (
 )
 
 type UserModifyData struct {
-	Campus  uint8 `json:"campus"`
+	Campus  uint8  `json:"campus" binding:"required"`
+	College string `json:"college" binding:"required"`
 	Contact struct {
 		QQ     string `json:"qq"`
 		Wechat string `json:"wechat"`
@@ -36,6 +37,7 @@ func ModifyInfo(context *gin.Context) {
 	person.Qq = postData.Contact.QQ
 	person.Wechat = postData.Contact.Wechat
 	person.Tel = postData.Contact.Tel
+	person.College = postData.College
 
 	// 更新数据
 	model.UpdatePerson(openID, person)
