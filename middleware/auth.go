@@ -13,11 +13,9 @@ func IsRegistered(context *gin.Context) {
 		utility.ResponseError(context, "缺少登录凭证")
 		context.Abort()
 		return
-	} else {
-		jwtToken = jwtToken[7:]
 	}
-	jwtData, err := utility.ParseToken(jwtToken)
-	// jwt token 解析失败
+
+	jwtData, err := utility.ParseToken(jwtToken[7:])
 	if err != nil {
 		utility.ResponseError(context, "jwt error")
 		context.Abort()

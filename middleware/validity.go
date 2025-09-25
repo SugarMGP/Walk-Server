@@ -26,15 +26,14 @@ func IsExpired(context *gin.Context) {
 		global.Config.GetString("expiredDate"),
 		time.Local,
 	)
-	expiredTimeUnix := expiredTime.Unix()
-	deltaTimeUnix := time.Now().Unix() - expiredTimeUnix
 
-	if deltaTimeUnix >= 0 { // 过期了
+	if time.Now().After(expiredTime) {
 		utility.ResponseError(context, "报名截止了哦")
 		context.Abort()
-	} else {
-		context.Next()
+		return
 	}
+
+	context.Next()
 }
 
 // CanSubmit 是否开发提交队伍
@@ -54,15 +53,15 @@ func RegisterJWTValidity(context *gin.Context) {
 		utility.ResponseError(context, "缺少登录凭证")
 		context.Abort()
 		return
-	} else {
-		jwtToken = jwtToken[7:]
 	}
-	_, err := utility.ParseToken(jwtToken)
 
+	_, err := utility.ParseToken(jwtToken[7:])
 	if err != nil {
 		utility.ResponseError(context, "请先登录")
 		context.Abort()
-	} else {
-		context.Next() // 转到 controller 继续执行
+		return
 	}
+
+	// 转到 controller 继续执行
+	context.Next()
 }

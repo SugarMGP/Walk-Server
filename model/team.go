@@ -36,17 +36,14 @@ func GetTeamInfo(teamID uint) (*Team, error) {
 func GetPersonsInTeam(teamID int) (Person, []Person) {
 	var persons []Person
 
-	var captain Person
-	var members []Person
-
-	global.DB.Where("team_id = ?", teamID).Find(&persons)
-	for _, person := range persons {
-		if person.Status == 2 { // 队长
-			captain = person
-		} else {
-			members = append(members, person)
-		}
+	global.DB.Where("team_id = ?", teamID).Order("status DESC").Find(&persons)
+	if len(persons) == 0 {
+		return Person{}, []Person{}
 	}
+
+	// 第一个是队长（status=2），其余是队员
+	captain := persons[0]
+	members := persons[1:]
 
 	return captain, members
 }
