@@ -36,6 +36,16 @@ func AddMember(context *gin.Context) {
 	// 读取 Get 参数
 	var newMember model.Person
 	newMemberStuID := context.Query("stuid")
+	if newMemberStuID == "" {
+		utility.ResponseError(context, "请输入学号")
+		return
+	}
+	if newMemberStuID == person.StuId {
+		utility.ResponseError(context, "不能添加自己")
+		return
+	}
+
+	// 查找新添加的用户
 	result := global.DB.Where(&model.Person{StuId: newMemberStuID}).Take(&newMember)
 	if result.RowsAffected == 0 {
 		utility.ResponseError(context, "没有这个用户")
