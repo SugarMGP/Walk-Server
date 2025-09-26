@@ -1,8 +1,8 @@
 package model
 
 import (
-	"encoding/json"
 	"errors"
+	"github.com/goccy/go-json"
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 	"time"

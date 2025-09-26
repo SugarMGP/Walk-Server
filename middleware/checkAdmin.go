@@ -2,8 +2,8 @@ package middleware
 
 import (
 	"bytes"
-	"encoding/json"
 	"github.com/gin-gonic/gin"
+	"github.com/goccy/go-json"
 	"io"
 	"strconv"
 	"time"
