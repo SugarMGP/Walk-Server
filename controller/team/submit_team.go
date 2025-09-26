@@ -1,6 +1,7 @@
 package team
 
 import (
+	"log"
 	"strconv"
 	"walk-server/global"
 	"walk-server/model"
@@ -16,7 +17,7 @@ local teamID = KEYS[1];
 local dailyRouteKey = KEYS[2];
 
 local num = redis.call("get", dailyRouteKey);
-if tonumber(num) <= 0 then
+if not num or tonumber(num) <= 0 then
 	return 2;
 end
 
@@ -63,6 +64,7 @@ func SubmitTeam(context *gin.Context) {
 	// 运行Lua脚本
 	n, err := submit.Run(global.Rctx, global.Rdb, []string{teamID, dailyRouteKey}).Int64()
 	if err != nil {
+		log.Println(err)
 		utility.ResponseError(context, "系统异常，请重试")
 		return
 	}
