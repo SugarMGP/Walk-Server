@@ -12,6 +12,15 @@ func GetCurrentDate() uint8 {
 		global.Config.GetString("startDate"),
 		time.Local,
 	)
+
+	startTime = time.Date(
+		startTime.Year(),
+		startTime.Month(),
+		startTime.Day(),
+		0, 0, 0, 0,
+		startTime.Location(),
+	)
+
 	return uint8(time.Since(startTime).Hours() / 24)
 }
 
