@@ -15,7 +15,7 @@ frontend:
 database:
   host: "127.0.0.1"
   user: "root"
-  passport: ""
+  password: ""
   port: "3306"
   name: ""
 

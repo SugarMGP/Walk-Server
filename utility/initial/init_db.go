@@ -14,12 +14,12 @@ func DBInit() {
 	// 从配置文件中读取数据库信息
 	dbHost := global.Config.GetString("database.host")
 	dbUser := global.Config.GetString("database.user")
-	dbPassport := global.Config.GetString("database.passport")
+	dbPassword := global.Config.GetString("database.password")
 	dbPort := global.Config.GetString("database.port")
 	dbName := global.Config.GetString("database.name")
 
 	dsn := fmt.Sprintf("%v:%v@tcp(%v:%v)/%v?charset=utf8mb4&parseTime=true&loc=Asia%%2FShanghai",
-		dbUser, dbPassport, dbHost, dbPort, dbName)
+		dbUser, dbPassword, dbHost, dbPort, dbName)
 
 	var err error
 	global.DB, err = gorm.Open(mysql.Open(dsn), &gorm.Config{
