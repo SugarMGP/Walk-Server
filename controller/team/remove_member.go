@@ -2,6 +2,7 @@ package team
 
 import (
 	"gorm.io/gorm"
+	"log"
 	"walk-server/global"
 	"walk-server/model"
 	"walk-server/utility"
@@ -61,6 +62,7 @@ func RemoveMember(context *gin.Context) {
 		return nil
 	})
 	if err != nil {
+		log.Println(err)
 		utility.ResponseError(context, "服务异常，请重试")
 		return
 	}

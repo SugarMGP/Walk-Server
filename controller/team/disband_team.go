@@ -2,6 +2,7 @@ package team
 
 import (
 	"gorm.io/gorm"
+	"log"
 	"strconv"
 	"walk-server/global"
 	"walk-server/model"
@@ -65,6 +66,7 @@ func DisbandTeam(context *gin.Context) {
 		return nil
 	})
 	if err != nil {
+		log.Println(err)
 		utility.ResponseError(context, "系统异常，请重试")
 		return
 	}

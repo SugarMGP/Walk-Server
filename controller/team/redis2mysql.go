@@ -1,6 +1,7 @@
 package team
 
 import (
+	"log"
 	"walk-server/global"
 	"walk-server/model"
 	"walk-server/utility"
@@ -11,6 +12,7 @@ import (
 func RedisToMysql(c *gin.Context) {
 	var teams []model.Team
 	if err := global.DB.Find(&teams).Error; err != nil {
+		log.Println(err)
 		utility.ResponseError(c, "服务异常，请重试")
 		return
 	}
@@ -21,6 +23,7 @@ func RedisToMysql(c *gin.Context) {
 			team.Submit = false
 		}
 		if err := global.DB.Select("submit").Updates(team).Error; err != nil {
+			log.Println(err)
 			utility.ResponseError(c, "服务异常，请重试")
 			return
 		}

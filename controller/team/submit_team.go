@@ -51,6 +51,7 @@ func SubmitTeam(context *gin.Context) {
 
 	result := global.DB.Where("id = ?", person.TeamId).Take(&team)
 	if result.Error != nil {
+		log.Println(result.Error)
 		utility.ResponseError(context, "系统异常，请重试")
 		return
 	} else if team.Num < 4 {

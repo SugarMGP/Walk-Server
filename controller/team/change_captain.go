@@ -3,6 +3,7 @@ package team
 import (
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
+	"log"
 	"strconv"
 	"walk-server/global"
 	"walk-server/model"
@@ -96,6 +97,7 @@ func ChangeCaptain(context *gin.Context) {
 		return nil
 	})
 	if err != nil {
+		log.Println(err)
 		utility.ResponseError(context, "服务异常，请重试")
 		return
 	}

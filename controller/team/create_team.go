@@ -1,6 +1,7 @@
 package team
 
 import (
+	"log"
 	"time"
 	"walk-server/global"
 	"walk-server/model"
@@ -85,6 +86,7 @@ func CreateTeam(context *gin.Context) {
 		return nil
 	})
 	if err != nil {
+		log.Println(err)
 		utility.ResponseError(context, "服务异常，请重试")
 		return
 	}
