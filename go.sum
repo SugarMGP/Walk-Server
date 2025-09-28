@@ -204,8 +204,8 @@ github.com/yuin/goldmark v1.2.1/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9dec
 github.com/yuin/goldmark v1.4.13/go.mod h1:6yULJ656Px+3vBD8DxQVa3kxgyrAnzto9xy5taEt/CY=
 github.com/yuin/gopher-lua v0.0.0-20220504180219-658193537a64 h1:5mLPGnFdSsevFRFc9q3yYbBkB6tsm4aCwwQV/j1JQAQ=
 github.com/yuin/gopher-lua v0.0.0-20220504180219-658193537a64/go.mod h1:GBR0iDaNXjAgGg9zfCvksxSRnQx76gclCIb7kdAd1Pw=
-github.com/zjutjh/WeJH-SDK v0.2.2 h1:iPTpXWba7scDx92qgWXR2/64b9+htAb61COtxX5ZXq0=
-github.com/zjutjh/WeJH-SDK v0.2.2/go.mod h1:EwTDNuBDnyIoJe3wnaGQpCl1YDZk+ajuAd4uix/Z3Es=
+github.com/zjutjh/WeJH-SDK v0.2.4 h1:6lULnhyi1Ph0c4e/FYwFf8vErtDIO2inlU1H6ZELILM=
+github.com/zjutjh/WeJH-SDK v0.2.4/go.mod h1:EwTDNuBDnyIoJe3wnaGQpCl1YDZk+ajuAd4uix/Z3Es=
 go.uber.org/multierr v1.11.0 h1:blXXJkSxSSfBVBlC76pxqeO+LN3aDfLQo+309xJstO0=
 go.uber.org/multierr v1.11.0/go.mod h1:20+QtiLqy0Nd6FdQB9TLXag12DsQkrbs3htMFfDN80Y=
 golang.org/x/arch v0.14.0 h1:z9JUEZWr8x4rR0OU6c4/4t6E6jOZ8/QBS2bBYBm4tx4=

@@ -56,15 +56,12 @@ func TeacherRegister(context *gin.Context) {
 		} else if errors.Is(oauthErr, oauthException.NotActivatedError) {
 			utility.ResponseError(context, "账号未激活，请自行到统一网站重新激活")
 			return
-		} else {
-			utility.ResponseError(context, "系统错误，请稍后再试")
+		} else if errors.Is(oauthErr, oauthException.EditPasswordError) {
+			utility.ResponseError(context, "统一密码需要修改, 请手动登录统一修改")
 			return
 		}
-	} else if err != nil {
-		utility.ResponseError(context, "系统错误，请稍后再试")
-		return
 	}
-	if cookie == nil {
+	if err != nil || cookie == nil {
 		utility.ResponseError(context, "统一验证失败，请稍后再试")
 		return
 	}

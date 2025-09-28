@@ -14,7 +14,7 @@ require (
 	github.com/spf13/viper v1.20.1
 	github.com/tidwall/gjson v1.18.0
 	github.com/xuri/excelize/v2 v2.9.0
-	github.com/zjutjh/WeJH-SDK v0.2.2
+	github.com/zjutjh/WeJH-SDK v0.2.4
 	gorm.io/driver/mysql v1.5.7
 	gorm.io/gorm v1.25.12
 )
