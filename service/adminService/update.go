@@ -5,6 +5,6 @@ import (
 	"walk-server/model"
 )
 
-func UpdateOpenID(admin model.Admin) {
-	global.DB.Updates(&admin)
+func UpdateOpenID(admin *model.Admin) {
+	global.DB.Updates(admin)
 }

@@ -5,16 +5,16 @@ import (
 	"walk-server/model"
 )
 
-func Update(a model.Team) {
-	global.DB.Save(&a)
+func Update(a *model.Team) {
+	global.DB.Save(a)
 }
 
-func Delete(a model.Team) error {
-	return global.DB.Delete(&a).Error
+func Delete(a *model.Team) error {
+	return global.DB.Delete(a).Error
 }
 
-func Create(a model.Team) error {
-	return global.DB.Create(&a).Error
+func Create(a *model.Team) error {
+	return global.DB.Create(a).Error
 }
 
 func UpdateCaptain(teamID int, openID string) error {

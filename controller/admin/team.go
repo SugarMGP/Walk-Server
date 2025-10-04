@@ -158,7 +158,7 @@ func BindTeam(c *gin.Context) {
 	team.Status = 5
 	team.StartNum = num
 	team.Time = time.Now()
-	teamService.Update(*team)
+	teamService.Update(team)
 	utility.ResponseSuccess(c, nil)
 }
 
@@ -221,7 +221,7 @@ func UpdateTeamStatus(c *gin.Context) {
 	if num == 0 {
 		team.Status = 3
 		team.Point = int8(constant.PointMap[team.Route])
-		teamService.Update(*team)
+		teamService.Update(team)
 		utility.ResponseSuccess(c, gin.H{
 			"progress_num": 0,
 		})
@@ -253,12 +253,12 @@ func UpdateTeamStatus(c *gin.Context) {
 	for _, p := range persons {
 		if p.WalkStatus == 3 {
 			p.WalkStatus = 2
-			userService.Update(p)
+			userService.Update(&p)
 		}
 	}
 	team.Time = time.Now()
 	team.Status = 2
-	teamService.Update(*team)
+	teamService.Update(team)
 	utility.ResponseSuccess(c, gin.H{
 		"progress_num": num,
 	})
@@ -308,7 +308,7 @@ func PostDestination(c *gin.Context) {
 	if num == 0 {
 		team.Status = 3
 		team.Point = int8(constant.PointMap[team.Route])
-		teamService.Update(*team)
+		teamService.Update(team)
 		utility.ResponseSuccess(c, nil)
 		return
 	}
@@ -320,16 +320,16 @@ func PostDestination(c *gin.Context) {
 		for _, p := range persons {
 			if p.WalkStatus == 2 || p.WalkStatus == 3 {
 				p.WalkStatus = 5
-				userService.Update(p)
+				userService.Update(&p)
 			}
 		}
 		team.Status = 4
-		teamService.Update(*team)
+		teamService.Update(team)
 		utility.ResponseSuccess(c, nil)
 		return
 	} else {
 		team.Status = 3
-		teamService.Update(*team)
+		teamService.Update(team)
 		utility.ResponseSuccess(c, nil)
 		return
 	}
@@ -356,7 +356,7 @@ func Regroup(c *gin.Context) {
 		return
 	}
 
-	var persons []model.Person
+	var persons []*model.Person
 	processedJwts := make(map[string]bool)
 	for _, jwt := range postForm.Jwts {
 		if processedJwts[jwt] {
@@ -397,22 +397,22 @@ func Regroup(c *gin.Context) {
 				p.TeamId = -1
 				p.Status = 0
 				p.WalkStatus = 1
-				userService.Update(p)
+				userService.Update(&p)
 			}
 			captain.TeamId = -1
 			captain.Status = 0
 			captain.WalkStatus = 1
-			userService.Update(captain)
+			userService.Update(&captain)
 
 			// 删除队伍
-			if err := teamService.Delete(*team); err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+			if err := teamService.Delete(team); err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 				log.Println(err)
 				utility.ResponseError(c, "服务错误")
 				return
 			}
 		}
 
-		persons = append(persons, *person)
+		persons = append(persons, person)
 	}
 
 	if postForm.Name == "" {
@@ -438,7 +438,7 @@ func Regroup(c *gin.Context) {
 		Submit:     true,
 		Time:       time.Now(),
 	}
-	err = teamService.Create(newTeam)
+	err = teamService.Create(&newTeam)
 	if err != nil {
 		utility.ResponseError(c, "服务错误")
 		return
@@ -485,7 +485,7 @@ func SubmitTeam(c *gin.Context) {
 	}
 
 	team.Submit = true
-	teamService.Update(*team)
+	teamService.Update(team)
 	global.Rdb.SAdd(global.Rctx, "teams", strconv.Itoa(int(team.ID)))
 	utility.ResponseSuccess(c, nil)
 

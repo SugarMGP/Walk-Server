@@ -68,7 +68,7 @@ func AuthByPassword(c *gin.Context) {
 			return
 		}
 		user.WechatOpenID = session.OpenID
-		adminService.UpdateOpenID(*user)
+		adminService.UpdateOpenID(user)
 	}
 	var jwtData utility.JwtData
 	jwtData.OpenID = utility.AesEncrypt(strconv.Itoa(int(user.ID)), global.Config.GetString("server.AESSecret"))

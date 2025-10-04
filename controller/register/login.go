@@ -34,7 +34,7 @@ func Login(context *gin.Context) {
 		utility.ResponseError(context, "信息错误,请检查是否填写有误")
 		return
 	}
-	err = userService.Set(jwtData.OpenID, *user)
+	err = userService.Set(jwtData.OpenID, user)
 	if err != nil {
 		utility.ResponseError(context, "微信已绑定")
 		return

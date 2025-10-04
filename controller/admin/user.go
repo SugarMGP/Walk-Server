@@ -72,7 +72,7 @@ func UserStatus(c *gin.Context) {
 		} else {
 			person.WalkStatus = 4
 		}
-		userService.Update(*person)
+		userService.Update(person)
 	}
 
 	// 检查队伍是否已经没人在行
@@ -94,7 +94,7 @@ func UserStatus(c *gin.Context) {
 		}
 		if num == 0 {
 			team.Status = 3
-			teamService.Update(team)
+			teamService.Update(&team)
 		}
 	}
 
