@@ -51,6 +51,7 @@ func AuthByPassword(c *gin.Context) {
 		return
 	}
 	if err != nil {
+		log.Println(err)
 		utility.ResponseError(c, "服务错误")
 		return
 	}
@@ -135,11 +136,12 @@ func AuthWithoutCode(c *gin.Context) {
 		return
 	}
 	user, err := adminService.GetUserByAccount(postForm.Username)
-	if err == gorm.ErrRecordNotFound {
+	if errors.Is(err, gorm.ErrRecordNotFound) {
 		utility.ResponseError(c, "账号错误")
 		return
 	}
 	if err != nil {
+		log.Println(err)
 		utility.ResponseError(c, "服务错误")
 		return
 	}

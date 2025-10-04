@@ -2,6 +2,7 @@ package admin
 
 import (
 	"errors"
+	"log"
 	"strconv"
 	"time"
 	"walk-server/constant"
@@ -123,6 +124,7 @@ func BindTeam(c *gin.Context) {
 		utility.ResponseError(c, "二维码已绑定")
 		return
 	} else if !errors.Is(err, gorm.ErrRecordNotFound) {
+		log.Println(err)
 		utility.ResponseError(c, "服务错误，请联系负责人")
 		return
 	}
@@ -337,6 +339,8 @@ type RegroupForm struct {
 	Jwts   []string `json:"jwts" binding:"required"`
 	Secret string   `json:"secret" binding:"required"`
 	Route  uint8    `json:"route" binding:"required"`
+	Name   string   `json:"name"`
+	Slogan string   `json:"slogan"`
 }
 
 func Regroup(c *gin.Context) {
@@ -356,13 +360,12 @@ func Regroup(c *gin.Context) {
 	processedJwts := make(map[string]bool)
 	for _, jwt := range postForm.Jwts {
 		if processedJwts[jwt] {
-			utility.ResponseError(c, "重复扫码,请重新提交")
+			continue
 		}
 		processedJwts[jwt] = true
 
 		jwtToken := jwt[7:]
 		jwtData, err := utility.ParseToken(jwtToken)
-
 		if err != nil {
 			utility.ResponseError(c, "扫码错误，请重新扫码")
 			return
@@ -370,7 +373,6 @@ func Regroup(c *gin.Context) {
 
 		// 获取个人信息
 		person, err := model.GetPerson(jwtData.OpenID)
-
 		if err != nil {
 			utility.ResponseError(c, "扫码错误，请重新扫码")
 			return
@@ -378,21 +380,20 @@ func Regroup(c *gin.Context) {
 
 		// 如果已有队伍则获取队伍信息
 		if person.TeamId != -1 {
-			team, _ := teamService.GetTeamByID(uint(person.TeamId))
+			team, err := teamService.GetTeamByID(uint(person.TeamId))
+			if err != nil {
+				log.Println(err)
+				utility.ResponseError(c, "服务错误")
+				return
+			}
 			if team.Status != 1 {
 				utility.ResponseError(c, person.Name+"的原队伍已开始，请勿重新组队")
 				return
 			}
-		}
 
-		persons = append(persons, *person)
-	}
-
-	for _, person := range persons {
-		// 如果已有队伍则退出
-		if person.TeamId != -1 {
-			captain, persons := model.GetPersonsInTeam(person.TeamId)
-			for _, p := range persons {
+			// 清空队伍成员
+			captain, members := model.GetPersonsInTeam(person.TeamId)
+			for _, p := range members {
 				p.TeamId = -1
 				p.Status = 0
 				p.WalkStatus = 1
@@ -402,34 +403,40 @@ func Regroup(c *gin.Context) {
 			captain.Status = 0
 			captain.WalkStatus = 1
 			userService.Update(captain)
-			team, err := teamService.GetTeamByID(uint(person.TeamId))
-			if err == nil {
-				err = teamService.Delete(*team)
-				if err != nil {
-					utility.ResponseError(c, "服务错误")
-					return
-				}
-			} else if !errors.Is(err, gorm.ErrRecordNotFound) {
+
+			// 删除队伍
+			if err := teamService.Delete(*team); err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+				log.Println(err)
 				utility.ResponseError(c, "服务错误")
 				return
 			}
 		}
+
+		persons = append(persons, *person)
+	}
+
+	if postForm.Name == "" {
+		postForm.Name = "新队伍"
+	}
+
+	if postForm.Slogan == "" {
+		postForm.Slogan = "新的开始"
 	}
 
 	// 创建新队伍，第一个人作为队长
 	newTeam := model.Team{
-		Name:       "新队伍",
+		Name:       postForm.Name,
 		Route:      postForm.Route,
 		Password:   "123456",
 		AllowMatch: true,
-		Slogan:     "新的开始",
+		Slogan:     postForm.Slogan,
 		Point:      -1,
 		Status:     1,
-		StartNum:   uint(0),
+		StartNum:   0,
 		Num:        uint8(len(persons)),
 		Captain:    persons[0].OpenId,
 		Submit:     true,
-		Time:       time.Now().Add(8 * time.Hour),
+		Time:       time.Now(),
 	}
 	err = teamService.Create(newTeam)
 	if err != nil {
@@ -437,15 +444,9 @@ func Regroup(c *gin.Context) {
 		return
 	}
 
-	team, err := teamService.GetTeamByCaptain(persons[0].OpenId)
-	if err != nil {
-		utility.ResponseError(c, "服务错误")
-		return
-	}
-
 	// 更新每个人的队伍ID
 	for i, person := range persons {
-		person.TeamId = int(team.ID)
+		person.TeamId = int(newTeam.ID)
 		if i == 0 {
 			person.Status = 2
 		} else {
