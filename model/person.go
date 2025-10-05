@@ -36,9 +36,9 @@ func (p *Person) UnmarshalBinary(data []byte) error {
 	return json.Unmarshal(data, p)
 }
 
+// GetPerson 使用加密后的 open ID 获取 person 数据
 // encOpenID 是加密后的 openID
 // 如果没有找到这个用户就返回 error
-// GetPerson 使用加密后的 open ID 获取 person 数据
 func GetPerson(encOpenID string) (*Person, error) {
 	// 如果缓存中找到了这个数据 直接返回缓存数据
 	var person Person
@@ -56,9 +56,9 @@ func GetPerson(encOpenID string) (*Person, error) {
 	}
 }
 
+// UpdatePerson 更新 person 数据
 // encOpenID 加密后的用户 openID
 // person 用户数据 (完整的)
-// UpdatePerson 更新 person 数据
 func UpdatePerson(encOpenID string, person *Person) {
 	// 如果缓存中存在这个数据, 先更新缓存
 	if _, err := global.Rdb.Get(global.Rctx, encOpenID).Result(); err == nil {
@@ -79,12 +79,12 @@ func SetPerson(encOpenID string, person *Person) error {
 	return global.DB.Exec("UPDATE people SET open_id = ? WHERE open_id = ?", encOpenID, person.OpenId).Error
 }
 
-// 事务中更新
+// TxUpdatePerson 事务中更新
 func TxUpdatePerson(tx *gorm.DB, person *Person) error {
 	// 如果缓存中存在这个数据, 先更新缓存
 	if _, err := global.Rdb.Get(global.Rctx, person.OpenId).Result(); err == nil {
 		global.Rdb.Set(global.Rctx, person.OpenId, person, 20*time.Minute)
-	} else if err != redis.Nil {
+	} else if !errors.Is(err, redis.Nil) {
 		return err
 	}
 

@@ -3,6 +3,7 @@ package utility
 import (
 	"errors"
 	"fmt"
+	"log"
 	"walk-server/global"
 	"walk-server/model"
 
@@ -82,9 +83,7 @@ func SendMessageWithWechat(message string, receiverEncOpenID string) {
 	accessToken, err = GetAccessToken(wechatAPPID, wechatSecret)
 
 	if err != nil {
-		if IsDebugMode() {
-			fmt.Println(err)
-		}
+		log.Println(err)
 		return
 	}
 

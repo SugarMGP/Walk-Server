@@ -305,15 +305,15 @@ func PostDestination(c *gin.Context) {
 		return
 	}
 
+	team.Point = int8(constant.PointMap[team.Route])
+
 	if num == 0 {
 		team.Status = 3
-		team.Point = int8(constant.PointMap[team.Route])
 		teamService.Update(team)
 		utility.ResponseSuccess(c, nil)
 		return
 	}
 
-	team.Point = int8(constant.PointMap[team.Route])
 	team.Time = time.Now()
 
 	if postForm.Status == 1 {
