@@ -612,6 +612,29 @@ func GetDetail(c *gin.Context) {
 	mgsHalfDetails := processRoute("mgsHalf", 4)
 	mgsAllDetails := processRoute("mgsAll", 5)
 
+	// 为每条路线添加已出发总人数
+	addStartedTotal := func(details []RouteDetail) []RouteDetail {
+		var startedTotal int64
+		// 计算除了"未出发"之外的所有人员数量
+		for i, detail := range details {
+			// 跳过"未出发"（索引0）
+			if i > 0 {
+				startedTotal += detail.Count
+			}
+		}
+		// 添加已出发总人数标签
+		return append(details, RouteDetail{
+			Count: startedTotal,
+			Label: "已出发",
+		})
+	}
+
+	zhDetails = addStartedTotal(zhDetails)
+	pfAllDetails = addStartedTotal(pfAllDetails)
+	pfHalfDetails = addStartedTotal(pfHalfDetails)
+	mgsHalfDetails = addStartedTotal(mgsHalfDetails)
+	mgsAllDetails = addStartedTotal(mgsAllDetails)
+
 	// 返回结果
 	utility.ResponseSuccess(c, gin.H{
 		"zh":      zhDetails,
