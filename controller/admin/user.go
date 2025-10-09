@@ -145,7 +145,7 @@ type User struct {
 	TeamID     uint      `json:"team_id"`
 	TeamName   string    `json:"team_name"`
 	Status     uint8     `json:"status"`      // 1 队员，2 队长
-	WalkStatus uint8     `json:"walk_status"` // 1 未开始，2 进行中，3 扫码成功，4 放弃，5 完成
+	WalkStatus uint8     `json:"walk_status"` // 1 未出发，2 进行中，3 扫码成功，4 放弃，5 完成
 	Location   string    `json:"location"`
 }
 
@@ -266,7 +266,7 @@ func DownloadTimeoutUsers(c *gin.Context) {
 		campusMap     = map[uint8]string{1: "朝晖", 2: "屏峰", 3: "莫干山"}
 		typeMap       = map[uint8]string{1: "学生", 2: "教职工", 3: "校友"}
 		statusMap     = map[uint8]string{1: "队员", 2: "队长"}
-		walkStatusMap = map[uint8]string{1: "未开始", 2: "进行中", 3: "进行中", 4: "放弃", 5: "已完成"}
+		walkStatusMap = map[uint8]string{1: "未出发", 2: "进行中", 3: "进行中", 4: "放弃", 5: "已完成"}
 	)
 
 	// 预分配切片容量

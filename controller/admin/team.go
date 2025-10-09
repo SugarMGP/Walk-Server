@@ -573,7 +573,7 @@ func GetDetail(c *gin.Context) {
 		points[len(points)-1] = endCount4
 	}
 
-	// 状态：进行中、未开始、已结束
+	// 状态：进行中、未出发、已结束
 	personStatusInProgress := []int{2, 3}
 	teamStatusInProgress := []int{2, 5}
 
@@ -589,7 +589,7 @@ func GetDetail(c *gin.Context) {
 			label := ""
 			switch i {
 			case 0:
-				label = "未开始"
+				label = "未出发"
 			case len(resultMap[routeName]) - 2:
 				label = "已结束"
 			case len(resultMap[routeName]) - 1:
