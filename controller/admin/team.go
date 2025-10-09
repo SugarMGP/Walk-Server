@@ -496,8 +496,9 @@ type GetDetailForm struct {
 }
 
 type RouteDetail struct {
-	Count int64  `json:"count"`
-	Label string `json:"label"`
+	Count2 *int64 `json:"count2,omitempty"`
+	Count  int64  `json:"count"`
+	Label  string `json:"label"`
 }
 
 // GetDetail 获取全部路线的点位信息
@@ -525,8 +526,8 @@ func GetDetail(c *gin.Context) {
 		resultMap[key] = make([]int64, constant.PointMap[uint8(route)]+3)
 	}
 
-	// 获取各点位人数
-	getPointCounts := func(route int, status []int, team_stuats []int, points []int64) {
+	// 获取各点位人数（当前在该点位的人数）
+	getPointCounts := func(route int, status []int, teamStatus []int, points []int64) {
 		var pointCounts []struct {
 			Point int64
 			Count int64
@@ -534,7 +535,7 @@ func GetDetail(c *gin.Context) {
 		global.DB.Model(&model.Person{}).
 			Select("teams.point, count(*) as count").
 			Joins("JOIN teams ON people.team_id = teams.id").
-			Where("teams.route = ? AND people.walk_status IN ? AND teams.status IN ?", route, status, team_stuats).
+			Where("teams.route = ? AND people.walk_status IN ? AND teams.status IN ?", route, status, teamStatus).
 			Group("teams.point").
 			Order("teams.point").
 			Scan(&pointCounts)
@@ -585,6 +586,17 @@ func GetDetail(c *gin.Context) {
 
 	processRoute := func(routeName string, routeID int) []RouteDetail {
 		details := make([]RouteDetail, len(resultMap[routeName]))
+
+		// 先计算每个点位的count2（经过该点位的总人数）
+		count2Array := make([]int64, len(resultMap[routeName]))
+		for i := len(resultMap[routeName]) - 3; i >= 0; i-- { // 从倒数第三个开始向前累加
+			if i == len(resultMap[routeName])-3 {
+				count2Array[i] = resultMap[routeName][i]
+			} else {
+				count2Array[i] = resultMap[routeName][i] + count2Array[i+1]
+			}
+		}
+
 		for i, count := range resultMap[routeName] {
 			label := ""
 			switch i {
@@ -597,9 +609,21 @@ func GetDetail(c *gin.Context) {
 			default:
 				label = constant.GetPointName(uint8(routeID), int8(i-1))
 			}
-			details[i] = RouteDetail{
-				Count: count,
-				Label: label,
+
+			// 只有普通点位需要count2
+			if i != 0 && i != len(resultMap[routeName])-2 && i != len(resultMap[routeName])-1 {
+				// 使用累加计算出的经过该点位的总人数
+				details[i] = RouteDetail{
+					Count:  count,
+					Count2: &count2Array[i],
+					Label:  label,
+				}
+			} else {
+				// 特殊标签不需要count2
+				details[i] = RouteDetail{
+					Count: count,
+					Label: label,
+				}
 			}
 		}
 		return details
