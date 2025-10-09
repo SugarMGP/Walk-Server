@@ -647,10 +647,10 @@ func GetDetail(c *gin.Context) {
 			}
 		}
 		// 添加已出发总人数标签
-		return append(details, RouteDetail{
+		return append([]RouteDetail{{
 			Count: startedTotal,
 			Label: "已出发",
-		})
+		}}, details...)
 	}
 
 	zhDetails = addStartedTotal(zhDetails)
