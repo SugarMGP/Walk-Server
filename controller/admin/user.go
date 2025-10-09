@@ -68,7 +68,12 @@ func UserStatus(c *gin.Context) {
 	for _, form := range postForm.List {
 		person := users[form.UserID]
 		if form.Status == 1 {
-			person.WalkStatus = 3
+			// 只有在起点时才为3，其他时候改成2
+			if teams[person.TeamId].Point == 0 {
+				person.WalkStatus = 3
+			} else {
+				person.WalkStatus = 2
+			}
 		} else {
 			person.WalkStatus = 4
 		}
