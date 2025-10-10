@@ -884,7 +884,6 @@ func GetTeamBySecret(c *gin.Context) {
 type SetTeamLostForm struct {
 	TeamID uint   `json:"team_id" binding:"required"`
 	Secret string `json:"secret" binding:"required"`
-	IsLost bool   `json:"is_lost"`
 }
 
 // SetTeamLost 标记队伍为失联
@@ -907,9 +906,13 @@ func SetTeamLost(c *gin.Context) {
 		return
 	}
 
-	team.IsLost = postForm.IsLost
+	team.IsLost = !team.IsLost
 	teamService.Update(team)
-	utility.ResponseSuccess(c, nil)
+	if team.IsLost {
+		utility.ResponseData(c, 200, "标记失联成功", nil)
+	} else {
+		utility.ResponseData(c, 200, "取消标记失联成功", nil)
+	}
 }
 
 // GetLostTeamsForm 获取失联队伍列表表单

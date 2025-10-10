@@ -69,7 +69,7 @@ func UserStatus(c *gin.Context) {
 		person := users[form.UserID]
 		if form.Status == 1 {
 			// 只有在起点时才为3，其他时候改成2
-			if teams[person.TeamId].Point == 0 {
+			if teams[person.TeamId].Point < 0 {
 				person.WalkStatus = 3
 			} else {
 				person.WalkStatus = 2
@@ -152,6 +152,7 @@ type User struct {
 	Status     uint8     `json:"status"`      // 1 队员，2 队长
 	WalkStatus uint8     `json:"walk_status"` // 1 未出发，2 进行中，3 扫码成功，4 放弃，5 完成
 	Location   string    `json:"location"`
+	IsLost     bool      `json:"is_lost"`
 }
 
 type PointUsers struct {
@@ -376,6 +377,7 @@ func buildUserData(person model.Person, team model.Team) User {
 		Status:     person.Status,
 		WalkStatus: person.WalkStatus,
 		Location:   constant.GetPointName(team.Route, team.Point),
+		IsLost:     team.IsLost,
 	}
 }
 
