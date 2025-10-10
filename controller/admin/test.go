@@ -7,6 +7,7 @@ import (
 	"math/rand"
 	"strconv"
 	"time"
+	"walk-server/constant"
 	"walk-server/global"
 	"walk-server/model"
 	"walk-server/utility"
@@ -33,6 +34,7 @@ func CreateTestTeams(c *gin.Context) {
 		// 1. 生成队伍数据（不插入数据库）
 		var teams []model.Team
 		for i := 0; i < postForm.Num; i++ {
+			route := rand.Intn(5) + 1
 			teams = append(teams, model.Team{
 				Name:       "测试队伍" + strconv.Itoa(i),
 				Num:        4,
@@ -40,7 +42,7 @@ func CreateTestTeams(c *gin.Context) {
 				Slogan:     "123",
 				AllowMatch: false,
 				Captain:    "", // 先留空，后面填充
-				Route:      1,
+				Route:      uint8(route),
 				Point:      0,
 				Status:     1,
 				StartNum:   0,
@@ -59,13 +61,14 @@ func CreateTestTeams(c *gin.Context) {
 		teamCaptains := make(map[uint]string) // team_id -> Captain OpenId
 
 		for i, team := range teams {
+			campus := rand.Intn(3) + 1
 			for j := 0; j < 4; j++ {
 				person := model.Person{
 					OpenId:     "test" + strconv.Itoa(i) + "team" + strconv.Itoa(j),
 					Name:       "测试队伍" + strconv.Itoa(i) + "队员" + strconv.Itoa(j),
 					Gender:     1,
 					StuId:      fmt.Sprintf("%011d", rand.Int63n(1e11)),
-					Campus:     1,
+					Campus:     uint8(campus),
 					Identity:   "test" + fmt.Sprintf("%011d", rand.Int63n(1e11)),
 					Status:     uint8(ternary(j == 0, 2, 1)), // 第一个人是队长
 					Qq:         "123",
@@ -184,7 +187,7 @@ func UpdateTestTeams(c *gin.Context) {
 			team.Status = 2
 			team.Time = time.Now().Add(time.Duration(-1*rand.Intn(60)) * time.Minute).Add(time.Duration(-1*rand.Intn(24)) * time.Hour)
 			team.Submit = true
-			team.Point = int8(rand.Intn(7)) // 生成 0 到 6 之间的随机数
+			team.Point = int8(rand.Intn(int(constant.PointMap[team.Route])))
 
 			if err := tx.Save(&team).Error; err != nil {
 				return err // 发生错误，回滚事务
