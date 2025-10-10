@@ -701,7 +701,6 @@ func GetSubmitDetail(c *gin.Context) {
 
 	// 创建结果集合
 	var results Results
-	submit := 1
 
 	// 定义路线和队伍类型的映射
 	routes := []struct {
@@ -729,7 +728,7 @@ func GetSubmitDetail(c *gin.Context) {
 	// 获取各个路线的队伍数据
 	for _, r := range routes {
 		for _, t := range teamTypes {
-			teamCount, totalCount := getTeamStats(r.Route, submit, t.Type, t.IsMixed)
+			teamCount, totalCount := getTeamStats(r.Route, t.Type, t.IsMixed)
 
 			switch r.Name {
 			case "朝晖":
@@ -776,15 +775,14 @@ func GetSubmitDetail(c *gin.Context) {
 }
 
 // 定义一个函数用于统计队伍数量和总人数
-func getTeamStats(route int, submit int, captainType int, hasStudent bool) (int64, int64) {
+func getTeamStats(route int, captainType int, hasStudent bool) (int64, int64) {
 	var teamCount int64
 	var totalCount int64
 
 	// 基础查询
 	teamQuery := global.DB.Model(&model.Team{}).
 		Joins("JOIN people AS captain ON captain.open_id = teams.captain").
-		Where("teams.route = ? AND teams.submit = ?", route, submit).
-		Where("captain.type = ?", captainType)
+		Where("teams.route = ? AND teams.submit = true AND captain.type = ?", route, captainType)
 
 	// 根据是否有学生的条件进行筛选
 	if captainType == 2 {
@@ -802,8 +800,7 @@ func getTeamStats(route int, submit int, captainType int, hasStudent bool) (int6
 	totalQuery := global.DB.Model(&model.Person{}).
 		Joins("JOIN teams ON people.team_id = teams.id").
 		Joins("JOIN people AS captain ON captain.open_id = teams.captain").
-		Where("teams.route = ? AND teams.submit = ?", route, submit).
-		Where("captain.type = ?", captainType)
+		Where("teams.route = ? AND teams.submit = true AND captain.type = ?", route, captainType)
 
 	if captainType == 2 {
 		if hasStudent {
