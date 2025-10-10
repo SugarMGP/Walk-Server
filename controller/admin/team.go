@@ -877,3 +877,90 @@ func GetTeamBySecret(c *gin.Context) {
 		"member": memberData,
 	})
 }
+
+// SetTeamLostForm 标记队伍失联表单
+type SetTeamLostForm struct {
+	TeamID uint   `json:"team_id" binding:"required"`
+	Secret string `json:"secret" binding:"required"`
+	IsLost bool   `json:"is_lost"`
+}
+
+// SetTeamLost 标记队伍为失联
+func SetTeamLost(c *gin.Context) {
+	var postForm SetTeamLostForm
+	err := c.ShouldBindJSON(&postForm)
+	if err != nil {
+		utility.ResponseError(c, "参数错误")
+		return
+	}
+
+	if postForm.Secret != global.Config.GetString("server.secret") {
+		utility.ResponseError(c, "密码错误")
+		return
+	}
+
+	team, err := teamService.GetTeamByID(postForm.TeamID)
+	if team == nil || err != nil {
+		utility.ResponseError(c, "队伍查找失败，请重新核对")
+		return
+	}
+
+	team.IsLost = postForm.IsLost
+	teamService.Update(team)
+	utility.ResponseSuccess(c, nil)
+}
+
+// GetLostTeamsForm 获取失联队伍列表表单
+type GetLostTeamsForm struct {
+	Secret string `form:"secret" binding:"required"`
+}
+
+// GetLostTeams 获取失联队伍列表
+func GetLostTeams(c *gin.Context) {
+	var queryForm GetLostTeamsForm
+	err := c.ShouldBindQuery(&queryForm)
+
+	if err != nil {
+		utility.ResponseError(c, "参数错误")
+		return
+	}
+
+	if queryForm.Secret != global.Config.GetString("server.secret") {
+		utility.ResponseError(c, "密码错误")
+		return
+	}
+
+	var lostTeams []model.Team
+	global.DB.Where("is_lost = ?", true).Find(&lostTeams)
+
+	var teamData []gin.H
+	for _, team := range lostTeams {
+		// 获取队伍成员信息
+		var persons []model.Person
+		global.DB.Where("team_id = ?", team.ID).Find(&persons)
+
+		// 构造成员联系方式信息
+		var memberData []gin.H
+		for _, member := range persons {
+			memberData = append(memberData, gin.H{
+				"name": member.Name,
+				"contact": gin.H{
+					"qq":     member.Qq,
+					"wechat": member.Wechat,
+					"tel":    member.Tel,
+				},
+			})
+		}
+
+		teamData = append(teamData, gin.H{
+			"id":      team.ID,
+			"name":    team.Name,
+			"route":   team.Route,
+			"members": memberData,
+		})
+	}
+
+	utility.ResponseSuccess(c, gin.H{
+		"teams": teamData,
+	})
+}

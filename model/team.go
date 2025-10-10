@@ -21,6 +21,7 @@ type Team struct {
 	Submit     bool      `gorm:"not null;default:false;comment:是否已提交报名"`
 	Code       string    `gorm:"size:128;index;comment:签到二维码绑定码"`
 	Time       time.Time `gorm:"comment:队伍状态更新时间"`
+	IsLost     bool      `gorm:"not null;default:false;comment:是否失联"`
 }
 
 func GetTeamInfo(teamID uint) (*Team, error) {

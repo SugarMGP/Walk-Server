@@ -97,6 +97,8 @@ func MountRoutes(router *gin.Engine) {
 		adminApi.GET("/timeout/download", admin.DownloadTimeoutUsers)                    // 下载超时未提交的用户
 		adminApi.GET("/team/status/secret", admin.GetTeamBySecret)                       // 通过密钥获取队伍信息
 		adminApi.POST("/route/create", admin.CreateRouteAdmin)                           // 创建路线管理员
+		adminApi.POST("/team/lost", admin.SetTeamLost)                                   // 设置队伍失联状态
+		adminApi.GET("/team/lost", admin.GetLostTeams)                                   // 获取所有失联的队伍
 
 		if gin.IsDebugging() {
 			adminApi.POST("/test/create", admin.CreateTestTeams) // 创建测试队伍
