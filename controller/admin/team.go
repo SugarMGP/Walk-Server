@@ -236,11 +236,12 @@ func UpdateTeamStatus(c *gin.Context) {
 			utility.ResponseError(c, "该队伍为半程路线，让队伍继续往前走就行")
 			return
 		}
-		if user.Point > 2 {
+		if user.Route == 3 && user.Point > 2 {
 			team.Point = user.Point - 2
 		} else {
 			team.Point = user.Point
 		}
+		global.Rdb.SRem(global.Rctx, "wrong_route_teams:pfAll", team.ID)
 	case 3:
 		if user.Route == 2 && user.Point == 2 {
 			global.Rdb.SAdd(global.Rctx, "wrong_route_teams:pfHalf", team.ID)
@@ -248,6 +249,7 @@ func UpdateTeamStatus(c *gin.Context) {
 			return
 		}
 		team.Point = user.Point
+		global.Rdb.SRem(global.Rctx, "wrong_route_teams:pfHalf", team.ID)
 	default:
 		team.Point = user.Point
 	}
