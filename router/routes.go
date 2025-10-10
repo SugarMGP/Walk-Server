@@ -99,6 +99,7 @@ func MountRoutes(router *gin.Engine) {
 		adminApi.POST("/route/create", admin.CreateRouteAdmin)                           // 创建路线管理员
 		adminApi.POST("/team/lost", admin.SetTeamLost)                                   // 设置队伍失联状态
 		adminApi.GET("/team/lost", admin.GetLostTeams)                                   // 获取所有失联的队伍
+		adminApi.GET("/team/wrong-route", admin.GetWrongRouteTeams)                      // 获取走错路线的队伍数量
 
 		if gin.IsDebugging() {
 			adminApi.POST("/test/create", admin.CreateTestTeams) // 创建测试队伍

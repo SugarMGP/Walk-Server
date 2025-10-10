@@ -232,6 +232,7 @@ func UpdateTeamStatus(c *gin.Context) {
 	switch team.Route {
 	case 2:
 		if user.Route == 3 && (user.Point == 2 || user.Point == 3 || user.Point == 4) {
+			global.Rdb.SAdd(global.Rctx, "wrong_route_teams:pfAll", team.ID)
 			utility.ResponseError(c, "该队伍为半程路线，让队伍继续往前走就行")
 			return
 		}
@@ -242,6 +243,7 @@ func UpdateTeamStatus(c *gin.Context) {
 		}
 	case 3:
 		if user.Route == 2 && user.Point == 2 {
+			global.Rdb.SAdd(global.Rctx, "wrong_route_teams:pfHalf", team.ID)
 			utility.ResponseError(c, "该队伍为全程路线，让队伍继续往前走就行")
 			return
 		}
@@ -962,5 +964,77 @@ func GetLostTeams(c *gin.Context) {
 
 	utility.ResponseSuccess(c, gin.H{
 		"teams": teamData,
+	})
+}
+
+// GetWrongRouteTeamsForm 获取走错路线队伍数量表单
+type GetWrongRouteTeamsForm struct {
+	Secret string `form:"secret" binding:"required"`
+}
+
+// GetWrongRouteTeams 获取走错路线的队伍数量
+func GetWrongRouteTeams(c *gin.Context) {
+	var queryForm GetWrongRouteTeamsForm
+	err := c.ShouldBindQuery(&queryForm)
+
+	if err != nil {
+		utility.ResponseError(c, "参数错误")
+		return
+	}
+
+	if queryForm.Secret != global.Config.GetString("server.secret") {
+		utility.ResponseError(c, "密码错误")
+		return
+	}
+
+	// 从Redis中获取走错路线的队伍ID列表
+	pfAllTeamIDs, err1 := global.Rdb.SMembers(global.Rctx, "wrong_route_teams:pfAll").Result()
+	pfHalfTeamIDs, err2 := global.Rdb.SMembers(global.Rctx, "wrong_route_teams:pfHalf").Result()
+	if err1 != nil || err2 != nil {
+		utility.ResponseError(c, "获取数据失败")
+		return
+	}
+
+	// 计算屏峰全程路线走错的队伍总人数
+	var pfAllCount int64
+	if len(pfAllTeamIDs) > 0 {
+		// 将字符串类型的ID转换为整数
+		var pfAllTeamIDInts []uint
+		for _, idStr := range pfAllTeamIDs {
+			if id, err := strconv.ParseUint(idStr, 10, 32); err == nil {
+				pfAllTeamIDInts = append(pfAllTeamIDInts, uint(id))
+			}
+		}
+
+		// 查询这些队伍的成员数量
+		if len(pfAllTeamIDInts) > 0 {
+			var count int64
+			global.DB.Model(&model.Person{}).Where("team_id IN ?", pfAllTeamIDInts).Count(&count)
+			pfAllCount = count
+		}
+	}
+
+	// 计算屏峰半程路线走错的队伍总人数
+	var pfHalfCount int64
+	if len(pfHalfTeamIDs) > 0 {
+		// 将字符串类型的ID转换为整数
+		var pfHalfTeamIDInts []uint
+		for _, idStr := range pfHalfTeamIDs {
+			if id, err := strconv.ParseUint(idStr, 10, 32); err == nil {
+				pfHalfTeamIDInts = append(pfHalfTeamIDInts, uint(id))
+			}
+		}
+
+		// 查询这些队伍的成员数量
+		if len(pfHalfTeamIDInts) > 0 {
+			var count int64
+			global.DB.Model(&model.Person{}).Where("team_id IN ?", pfHalfTeamIDInts).Count(&count)
+			pfHalfCount = count
+		}
+	}
+
+	utility.ResponseSuccess(c, gin.H{
+		"pf_all_count":  pfAllCount,  // 屏峰走错为全程的数量
+		"pf_half_count": pfHalfCount, // 屏峰走错为半程的数量
 	})
 }
