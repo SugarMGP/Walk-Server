@@ -262,6 +262,7 @@ func UpdateTeamStatus(c *gin.Context) {
 	}
 	team.Time = time.Now()
 	team.Status = 2
+	team.IsLost = false
 	teamService.Update(team)
 	utility.ResponseSuccess(c, gin.H{
 		"progress_num": num,
