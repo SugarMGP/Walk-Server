@@ -784,36 +784,22 @@ func getTeamStats(route int, captainType int, hasStudent bool) (int64, int64) {
 
 	// 基础查询
 	teamQuery := global.DB.Model(&model.Team{}).
+		Select("teams.id").
 		Joins("JOIN people AS captain ON captain.open_id = teams.captain").
 		Where("teams.route = ? AND teams.submit = true AND captain.type = ?", route, captainType)
 
 	// 根据是否有学生的条件进行筛选
 	if captainType == 2 {
 		if hasStudent {
-			teamQuery = teamQuery.Where("EXISTS (SELECT 1 FROM people WHERE people.team_id = teams.id AND people.type = 1)")
+			teamQuery = teamQuery.Where("EXISTS (SELECT 1 FROM people p WHERE p.team_id = teams.id AND p.type = 1)")
 		} else {
-			teamQuery = teamQuery.Where("NOT EXISTS (SELECT 1 FROM people WHERE people.team_id = teams.id AND people.type = 1)")
+			teamQuery = teamQuery.Where("NOT EXISTS (SELECT 1 FROM people p WHERE p.team_id = teams.id AND p.type = 1)")
 		}
 	}
 
 	// 统计队伍数量
 	teamQuery.Count(&teamCount)
-
-	// 统计总人数
-	totalQuery := global.DB.Model(&model.Person{}).
-		Joins("JOIN teams ON people.team_id = teams.id").
-		Joins("JOIN people AS captain ON captain.open_id = teams.captain").
-		Where("teams.route = ? AND teams.submit = true AND captain.type = ?", route, captainType)
-
-	if captainType == 2 {
-		if hasStudent {
-			totalQuery = totalQuery.Where("EXISTS (SELECT 1 FROM people WHERE people.team_id = teams.id AND people.type = 1)")
-		} else {
-			totalQuery = totalQuery.Where("NOT EXISTS (SELECT 1 FROM people WHERE people.team_id = teams.id AND people.type = 1)")
-		}
-	}
-
-	totalQuery.Count(&totalCount)
+	global.DB.Model(&model.Person{}).Where("team_id IN (?)", teamQuery).Count(&totalCount)
 
 	return teamCount, totalCount
 }
